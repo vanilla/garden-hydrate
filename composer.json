@@ -1,0 +1,36 @@
+{
+    "name": "vanilla/garden-hydrate",
+    "description": "A JSON based templating language for data.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Todd Burry",
+            "email": "todd@vanillaforums.com"
+        }
+    ],
+    "require": {
+        "vanilla/garden-jsont": "^1.2",
+        "vanilla/garden-schema": "~1.10.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Garden\\Hydrate\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Garden\\Hydrate\\Tests\\": "tests"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7",
+        "vanilla/standards": "^1.3",
+        "vimeo/psalm": "^3.4"
+    },
+    "config": {
+        "platform": {
+            "php": "7.1"
+        }
+    }
+}

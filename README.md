@@ -1,2 +1,3 @@
-# garden-hydrate
-A JSON based templating language for data.
+# Garden Hydrate
+
+*A JSON based templating language for data.*
