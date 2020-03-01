@@ -126,8 +126,10 @@ class DataHydratorTest extends TestCase {
         $actual = $this->hydrator->hydrate(['$type' => 'str']);
         $this->assertSame(['str' => 'a'], $actual);
 
-        $this->hydrator->unregisterResolver('str');
+        $r = $this->hydrator->unregisterResolver('str');
+        $this->assertSame($this->hydrator, $r);
         $this->expectException(ResolverNotFoundException::class);
+        $this->expectExceptionCode(404);
         $actual = $this->hydrator->hydrate(['$type' => 'str']);
     }
 
@@ -138,8 +140,9 @@ class DataHydratorTest extends TestCase {
         $handler1 = $this->hydrator->getExceptionHandler();
         $handler2 = new NullExceptionHandler();
         $this->assertNotSame($handler1, $handler2);
-        $this->hydrator->setExceptionHandler($handler2);
+        $r = $this->hydrator->setExceptionHandler($handler2);
         $this->assertSame($handler2, $this->hydrator->getExceptionHandler());
+        $this->assertSame($r, $this->hydrator);
     }
 
     /**
@@ -147,11 +150,13 @@ class DataHydratorTest extends TestCase {
      */
     public function testMiddlewareAccessors() {
         $mw = new TestStringMiddleware('a');
-        $this->hydrator->registerMiddleware('strA', $mw);
+        $r = $this->hydrator->registerMiddleware('strA', $mw);
         $this->assertTrue($this->hydrator->isMiddlewareRegistered('strA'));
+        $this->assertSame($this->hydrator, $r);
 
-        $this->hydrator->unregisterMiddleware('strA');
+        $r = $this->hydrator->unregisterMiddleware('strA');
         $this->assertFalse($this->hydrator->isMiddlewareRegistered('strA'));
+        $this->assertSame($this->hydrator, $r);
     }
 
     /**
@@ -189,6 +194,7 @@ class DataHydratorTest extends TestCase {
             ]
         ];
         $this->expectException(MiddlewareNotFoundException::class);
+        $this->expectExceptionCode(404);
         $actual = $this->hydrator->hydrate($spec);
     }
 
@@ -229,5 +235,19 @@ class DataHydratorTest extends TestCase {
         ];
         $actual = $this->hydrator->hydrate($spec);
         $this->assertSame('Hello foo', $actual);
+    }
+
+    /**
+     * Test that a basic set of resolvers are registered by default.
+     */
+    public function testDefaultResolvers() {
+        $hydrator = new DataHydrator();
+
+        $this->assertTrue($hydrator->isResolverRegistered('ref'));
+        $this->assertTrue($hydrator->isResolverRegistered('param'));
+        $this->assertTrue($hydrator->isResolverRegistered('literal'));
+        $this->assertTrue($hydrator->isResolverRegistered('sprintf'));
+
+        $this->assertTrue($hydrator->isMiddlewareRegistered('transform'));
     }
 }

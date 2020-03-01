@@ -93,7 +93,7 @@ class DataHydrator implements DataResolverInterface {
      * @param MiddlewareInterface $middleware
      * @return $this
      */
-    public function registerMiddleware(string $name, MiddlewareInterface $middleware) {
+    public function registerMiddleware(string $name, MiddlewareInterface $middleware): self {
         $this->middlewares[$name] = $middleware;
         return $this;
     }
@@ -104,7 +104,7 @@ class DataHydrator implements DataResolverInterface {
      * @param string $name
      * @return $this
      */
-    public function unregisterMiddleware(string $name) {
+    public function unregisterMiddleware(string $name): self {
         unset($this->middlewares[$name]);
         return $this;
     }
