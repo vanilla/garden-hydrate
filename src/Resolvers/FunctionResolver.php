@@ -8,6 +8,8 @@
 namespace Garden\Hydrate\Resolvers;
 
 use Garden\Schema\Schema;
+use ReflectionFunction;
+use ReflectionMethod;
 
 /**
  * A data resolver that will calls a function with named parameters.
@@ -43,6 +45,7 @@ class FunctionResolver extends AbstractDataResolver {
      *
      * @param callable $callable
      * @return array Returns an array in the form `[$schema, $paramNames]`.
+     * @psalm-suppress PossiblyNullReference
      */
     private function reflectSchema(callable $callable): array {
         $func = $this->createReflectionFunction($callable);
@@ -65,7 +68,7 @@ class FunctionResolver extends AbstractDataResolver {
             $schema = [];
             if ($param->isVariadic()) {
                 $schema = ['type' => 'array', 'items' => []];
-            } elseif ($param->hasType() && $param->getType()->isBuiltin()) {
+            } elseif (null !== $param->getType() && $param->getType()->isBuiltin()) {
                 $typeName = $param->getType()->getName();
                 switch ($typeName) {
                     case 'bool':
@@ -109,12 +112,13 @@ class FunctionResolver extends AbstractDataResolver {
      *
      * @param callable $callable
      * @return \ReflectionFunctionAbstract
+     * @psalm-suppress InvalidArgument
      */
     private function createReflectionFunction(callable $callable): \ReflectionFunctionAbstract {
         if (is_array($callable)) {
-            $result = new \ReflectionMethod(...$callable);
+            $result = new ReflectionMethod(...$callable);
         } else {
-            $result = new \ReflectionFunction($callable);
+            $result = new ReflectionFunction($callable);
         }
         return $result;
     }

@@ -15,7 +15,7 @@ use Garden\Schema\Schema;
  */
 abstract class AbstractDataResolver implements ValidatableResolverInterface {
     /**
-     * @var Schema
+     * @var ?Schema
      */
     protected $schema;
 

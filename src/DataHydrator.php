@@ -27,12 +27,12 @@ class DataHydrator implements DataResolverInterface {
     /**
      * @var DataResolverInterface[]
      */
-    private $resolvers;
+    private $resolvers = [];
 
     /**
      * @var MiddlewareInterface[]
      */
-    private $middlewares;
+    private $middlewares = [];
 
     /**
      * @var ExceptionHandlerInterface
@@ -206,9 +206,9 @@ class DataHydrator implements DataResolverInterface {
      * Set the exception handler.
      *
      * @param ExceptionHandlerInterface $exceptionHandler
-     * @return $this;
+     * @return self
      */
-    public function setExceptionHandler(ExceptionHandlerInterface $exceptionHandler) {
+    public function setExceptionHandler(ExceptionHandlerInterface $exceptionHandler): self {
         $this->exceptionHandler = $exceptionHandler;
         return $this;
     }
