@@ -14,7 +14,7 @@ class NullExceptionHandler implements ExceptionHandlerInterface {
     /**
      * {@inheritDoc}
      */
-    public function handleException(\Throwable $ex, array $data, $params) {
+    public function handleException(\Throwable $ex, array $data, array $params) {
         throw $ex;
     }
 }
