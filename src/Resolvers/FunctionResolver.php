@@ -84,7 +84,9 @@ class FunctionResolver extends AbstractDataResolver {
                         $schema['type'] = 'number';
                         break;
                     case 'array':
-                        $schema['type'] = ['type' => 'array', 'items' => []];
+                        $schema['type'] = ['array', 'object'];
+                        $schema['items'] = [];
+                        break;
                 }
 
                 if ($param->allowsNull()) {

@@ -48,4 +48,22 @@ class MutationsTest extends TestCase {
         $this->expectExceptionCode(500);
         $actual = $this->hydrator->hydrate($spec, ['foo' => []]);
     }
+
+    /**
+     * Test middleware and a resolver together.
+     */
+    public function testMiddlewareAndParams() {
+        $spec = [
+            DataHydrator::KEY_TYPE => 'param',
+            'ref' => 'foo',
+            DataHydrator::KEY_MIDDLEWARE => [
+                [
+                    DataHydrator::KEY_TYPE => 'transform',
+                    'transform' => '/foo',
+                ],
+            ],
+        ];
+        $actual = $this->hydrator->hydrate($spec, ['foo' => ['foo' => 'bar']]);
+        $this->assertSame('bar', $actual);
+    }
 }

@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Tests for the `ReflectedFunctionResolver` class.
  */
-class ReflectedFunctionResolverTest extends TestCase {
+class FunctionResolverTest extends TestCase {
     /**
      * Test basic reflection with the `implode()` function.
      */
@@ -46,18 +46,19 @@ class ReflectedFunctionResolverTest extends TestCase {
      * @param mixed $b
      * @param mixed $i
      * @param mixed $f
+     * @param mixed $a
      * @param string $exception
      * @dataProvider provideTypeHindTests
      */
-    public function testTypeHints($s, $b, $i, $f, string $exception = ''): void {
-        $resolver = new FunctionResolver(function (string $s, bool $b, int $i, float $f) {
+    public function testTypeHints($s, $b, $i, $f, $a, string $exception = ''): void {
+        $resolver = new FunctionResolver(function (string $s, bool $b, int $i, float $f, array $a) {
             return 'foo';
         });
 
         if ($exception) {
             $this->expectException(ValidationException::class);
         }
-        $actual = $resolver->resolve(['s' => $s, 'b' => $b, 'i' => $i, 'f' => $f], []);
+        $actual = $resolver->resolve(['s' => $s, 'b' => $b, 'i' => $i, 'f' => $f, 'a' => $a], []);
         $this->assertSame('foo', $actual);
     }
 
@@ -67,14 +68,16 @@ class ReflectedFunctionResolverTest extends TestCase {
      * @return array
      */
     public function provideTypeHindTests(): array {
-        $c = ['s', true, 123, 12.3];
+        $c = ['s', true, 123, 12.3, [1, 2, 4]];
 
         $r = [
             $c,
-            array_replace($c, [0 => [], 4 => 's']),
-            array_replace($c, [1 => [], 4 => 'b']),
-            array_replace($c, [2 => [], 4 => 'i']),
-            array_replace($c, [3 => [], 4 => 'f']),
+            array_replace($c, [0 => [], 5 => 's']),
+            array_replace($c, [1 => [], 5 => 'b']),
+            array_replace($c, [2 => [], 5 => 'i']),
+            array_replace($c, [3 => [], 5 => 'f']),
+            array_replace($c, [4 => 'foo', 5 => 'a']),
+            array_replace($c, [4 => ['foo' => 'bar']]),
         ];
 
         return $r;
@@ -150,5 +153,43 @@ class ReflectedFunctionResolverTest extends TestCase {
      */
     public static function staticMethod(): string {
         return 'foo';
+    }
+
+    /**
+     * Variadic arguments must be an array.
+     */
+    public function testInvalidVariadic(): void {
+        $resolver = new FunctionResolver(function (...$args) {
+            return $args;
+        });
+        $this->expectException(ValidationException::class);
+        $actual = $resolver->resolve(['args' => 'foo'], []);
+    }
+
+    /**
+     * A variadic function should work with no variadic args passed.
+     */
+    public function testVariadicNoArgs(): void {
+        $resolver = new FunctionResolver(function (...$args) {
+            return $args;
+        });
+        $actual = $resolver->resolve([], []);
+        $this->assertSame([], $actual);
+    }
+
+    /**
+     * A function parameter with no type hint should accept multiple types.
+     */
+    public function testFunctionParamNoType() {
+        $resolver = new FunctionResolver(function ($a) {
+            return $a;
+        });
+
+        $actual = $resolver->resolve(['a' => 'foo'], []);
+        $this->assertSame('foo', $actual);
+
+        $expected = new \ArrayObject(['foo' => 'bar']);
+        $actual = $resolver->resolve(['a' => $expected], []);
+        $this->assertSame($expected, $actual);
     }
 }

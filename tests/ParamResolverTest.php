@@ -39,6 +39,14 @@ class ParamResolverTest extends TestCase {
     }
 
     /**
+     * The ref must be a valid string.
+     */
+    public function testInvalidRef(): void {
+        $this->expectException(ValidationException::class);
+        $this->resolver->resolve(['ref' => []], []);
+    }
+
+    /**
      * The default should be respected.
      */
     public function testDefault(): void {
