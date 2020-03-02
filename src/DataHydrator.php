@@ -234,6 +234,11 @@ class DataHydrator implements DataResolverInterface {
 
         while (!empty($middlewares)) {
             $params = array_pop($middlewares);
+
+            if (!is_array($params)) {
+                throw new \TypeError('Each middleware must be an array.', 500);
+            }
+
             $middleware = $this->getMiddleware($params[self::KEY_TYPE]);
             $result = new MiddlewareWrapper($middleware, $result, $params);
         }
