@@ -34,4 +34,21 @@ class LiteralResolverTest extends TestCase {
         $this->expectExceptionMessage('data is required.');
         $this->resolver->resolve([], []);
     }
+
+    public function testLiteralResolverReserved(): void {
+        $hydrator = new DataHydrator();
+        $spec = [
+            DataHydrator::KEY_HYDRATE => 'literal',
+            'data' => [
+                DataHydrator::KEY_HYDRATE => 'literal',
+                'data' => 123
+            ]
+        ];
+        $actual = $hydrator->hydrate($spec);
+        $expected = [
+            DataHydrator::KEY_HYDRATE => 'literal',
+            'data' => 123
+        ];
+        $this->assertSame($expected, $actual);
+    }
 }

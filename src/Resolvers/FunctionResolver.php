@@ -119,8 +119,10 @@ class FunctionResolver extends AbstractDataResolver {
     private function createReflectionFunction(callable $callable): \ReflectionFunctionAbstract {
         if (is_array($callable)) {
             $result = new ReflectionMethod(...$callable);
-        } else {
+        } elseif (is_string($callable) || $callable instanceof \Closure) {
             $result = new ReflectionFunction($callable);
+        } else {
+            $result = new ReflectionMethod($callable, '__call');
         }
         return $result;
     }

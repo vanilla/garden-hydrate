@@ -31,19 +31,19 @@ class MutationsTest extends TestCase {
     }
 
     /**
-     * The `'$type'` field shouldn't expand.
+     * The `'@hydrate'` field shouldn't expand.
      */
     public function testStaticTypeField() {
-        $spec = [DataHydrator::KEY_TYPE => [DataHydrator::KEY_TYPE => 'param', 'ref' => 'foo']];
+        $spec = [DataHydrator::KEY_HYDRATE => [DataHydrator::KEY_HYDRATE => 'param', 'ref' => 'foo']];
         $this->expectException(\Throwable::class);
         $actual = $this->hydrator->hydrate($spec, ['foo' => 'literal']);
     }
 
     /**
-     * The `'$middleware'` field shouldn't expand.
+     * The `'@middleware'` field shouldn't expand.
      */
     public function testStaticMiddlewareField() {
-        $spec = [DataHydrator::KEY_MIDDLEWARE => [DataHydrator::KEY_TYPE => 'param', 'ref' => 'foo']];
+        $spec = [DataHydrator::KEY_MIDDLEWARE => [DataHydrator::KEY_HYDRATE => 'param', 'ref' => 'foo']];
         $this->expectException(\Throwable::class);
         $this->expectExceptionCode(500);
         $actual = $this->hydrator->hydrate($spec, ['foo' => []]);
@@ -54,11 +54,11 @@ class MutationsTest extends TestCase {
      */
     public function testMiddlewareAndParams() {
         $spec = [
-            DataHydrator::KEY_TYPE => 'param',
+            DataHydrator::KEY_HYDRATE => 'param',
             'ref' => 'foo',
             DataHydrator::KEY_MIDDLEWARE => [
                 [
-                    DataHydrator::KEY_TYPE => 'transform',
+                    DataHydrator::KEY_MIDDLEWARE_TYPE => 'transform',
                     'transform' => '/foo',
                 ],
             ],

@@ -50,7 +50,7 @@ class DataHydratorTest extends TestCase {
      * The spec should be able to return a single context element.
      */
     public function testRootParam(): void {
-        $spec = ['$type' => 'param', 'ref' => 'foo'];
+        $spec = ['@hydrate' => 'param', 'ref' => 'foo'];
         $actual = $this->hydrator->hydrate($spec, ['foo' => 'bar']);
         $this->assertSame('bar', $actual);
     }
@@ -59,7 +59,7 @@ class DataHydratorTest extends TestCase {
      * I should be able to resolve a nested array.
      */
     public function testNestedType(): void {
-        $spec = ['foo' => ['$type' => 'param', 'ref' => 'foo']];
+        $spec = ['foo' => ['@hydrate' => 'param', 'ref' => 'foo']];
         $actual = $this->hydrator->hydrate($spec, ['foo' => 'bar']);
         $this->assertSame(['foo' => 'bar'], $actual);
     }
@@ -68,7 +68,7 @@ class DataHydratorTest extends TestCase {
      * I should be able to resolve arguments to a parent resolver.
      */
     public function testRecursiveResolution(): void {
-        $spec = ['$type' => 'param', 'ref' => ['$type' => 'param', 'ref' => 'foo']];
+        $spec = ['@hydrate' => 'param', 'ref' => ['@hydrate' => 'param', 'ref' => 'foo']];
         $actual = $this->hydrator->hydrate($spec, ['foo' => 'bar', 'bar' => 'baz']);
         $this->assertSame('baz', $actual);
     }
@@ -77,7 +77,7 @@ class DataHydratorTest extends TestCase {
      * A reference should be able to reference the root data.
      */
     public function testRootRef(): void {
-        $spec = ['foo' => 'bar', 'baz' => ['$type' => 'ref', 'ref' => '/foo']];
+        $spec = ['foo' => 'bar', 'baz' => ['@hydrate' => 'ref', 'ref' => '/foo']];
         $expected = ['foo' => 'bar', 'baz' => 'bar'];
 
         $actual = $this->hydrator->hydrate($spec);
@@ -90,11 +90,11 @@ class DataHydratorTest extends TestCase {
     public function testExceptionBoundary(): void {
         $spec = [
             [
-                '$type' => 'exception',
+                '@hydrate' => 'exception',
                 'message' => 'outer',
                 'throw' => false,
                 'nest' => [
-                    '$type' => 'exception',
+                    '@hydrate' => 'exception',
                     'message' => 'inner'
                 ],
             ],
@@ -123,14 +123,14 @@ class DataHydratorTest extends TestCase {
      * Test unregistering a resolver.
      */
     public function testUnregisterResolver() {
-        $actual = $this->hydrator->hydrate(['$type' => 'str']);
+        $actual = $this->hydrator->hydrate(['@hydrate' => 'str']);
         $this->assertSame(['str' => 'a'], $actual);
 
         $r = $this->hydrator->unregisterResolver('str');
         $this->assertSame($this->hydrator, $r);
         $this->expectException(ResolverNotFoundException::class);
         $this->expectExceptionCode(404);
-        $actual = $this->hydrator->hydrate(['$type' => 'str']);
+        $actual = $this->hydrator->hydrate(['@hydrate' => 'str']);
     }
 
     /**
@@ -166,15 +166,15 @@ class DataHydratorTest extends TestCase {
         $hydrator = new DataHydrator();
 
         $this->expectException(ResolverNotFoundException::class);
-        $actual = $hydrator->hydrate(['$type' => 'foo']);
+        $actual = $hydrator->hydrate(['@hydrate' => 'foo']);
     }
 
     /**
      * Test a basic data transform integration.
      */
     public function testTransformMiddlewareIntegration() {
-        $spec = ['$type' => 'literal', 'data' => ['a' => ['foo' => 'bar']], DataHydrator::KEY_MIDDLEWARE => [
-                [DataHydrator::KEY_TYPE => 'transform', 'transform' => ['baz' => '/a/foo']],
+        $spec = ['@hydrate' => 'literal', 'data' => ['a' => ['foo' => 'bar']], DataHydrator::KEY_MIDDLEWARE => [
+                [DataHydrator::KEY_MIDDLEWARE_TYPE => 'transform', 'transform' => ['baz' => '/a/foo']],
             ]
         ];
         $expected = ['baz' => 'bar'];
@@ -187,10 +187,10 @@ class DataHydratorTest extends TestCase {
      */
     public function testInvalidMiddleware() {
         $spec = [
-            '$type' => 'literal',
+            '@hydrate' => 'literal',
             'data' => ['a' => ['foo' => 'bar']],
             DataHydrator::KEY_MIDDLEWARE => [
-                [DataHydrator::KEY_TYPE => 'foo'],
+                [DataHydrator::KEY_MIDDLEWARE_TYPE => 'foo'],
             ]
         ];
         $this->expectException(MiddlewareNotFoundException::class);
@@ -199,7 +199,7 @@ class DataHydratorTest extends TestCase {
     }
 
     /**
-     * The `'$middleware'` key should always be removed.
+     * The `'@middleware'` key should always be removed.
      */
     public function testJustMiddlewareRemoval() {
         $spec = ['foo' => 'bar', DataHydrator::KEY_MIDDLEWARE => []];
@@ -214,7 +214,7 @@ class DataHydratorTest extends TestCase {
         $spec = [
             'a' => ['foo' => 'bar'],
             DataHydrator::KEY_MIDDLEWARE => [
-                [DataHydrator::KEY_TYPE => 'transform', 'transform' => ['baz' => '/a/foo']],
+                [DataHydrator::KEY_MIDDLEWARE_TYPE => 'transform', 'transform' => ['baz' => '/a/foo']],
             ]
         ];
         $expected = ['baz' => 'bar'];
@@ -227,7 +227,7 @@ class DataHydratorTest extends TestCase {
      */
     public function testSprintf() {
         $spec = [
-            DataHydrator::KEY_TYPE => 'sprintf',
+            DataHydrator::KEY_HYDRATE => 'sprintf',
             'format' => 'Hello %s',
             'args' => [
                 'foo',
@@ -240,7 +240,7 @@ class DataHydratorTest extends TestCase {
     /**
      * Test that a basic set of resolvers are registered by default.
      */
-    public function testDefaultResolvers() {
+    public function testDefaultResolvers(): void {
         $hydrator = new DataHydrator();
 
         $this->assertTrue($hydrator->isResolverRegistered('ref'));

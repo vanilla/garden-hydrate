@@ -10,7 +10,6 @@ namespace Garden\Hydrate;
 use Garden\Hydrate\Exception\MiddlewareNotFoundException;
 use Garden\Hydrate\Exception\ResolverNotFoundException;
 use Garden\Hydrate\Middleware\TransformMiddleware;
-use Garden\Hydrate\Resolvers\FunctionResolver;
 use Garden\Hydrate\Resolvers\LiteralResolver;
 use Garden\Hydrate\Resolvers\ParamResolver;
 use Garden\Hydrate\Resolvers\RefResolver;
@@ -20,9 +19,10 @@ use Garden\Hydrate\Resolvers\SprintfResolver;
  * Allows data to by hydrated based on a spec that can include data resolvers or literal data.
  */
 class DataHydrator implements DataResolverInterface {
-    public const KEY_TYPE = '$type';
-    public const KEY_MIDDLEWARE = '$middleware';
-    public const KEY_ROOT = '$root';
+    public const KEY_HYDRATE = '@hydrate';
+    public const KEY_MIDDLEWARE = '@middleware';
+    public const KEY_MIDDLEWARE_TYPE = 'type';
+    public const KEY_ROOT = '@root';
 
     /**
      * @var DataResolverInterface[]
@@ -45,9 +45,9 @@ class DataHydrator implements DataResolverInterface {
     public function __construct() {
         $this->setExceptionHandler(new NullExceptionHandler());
 
-        $this->registerResolver('ref', new RefResolver());
-        $this->registerResolver('param', new ParamResolver());
         $this->registerResolver('literal', new LiteralResolver());
+        $this->registerResolver('param', new ParamResolver());
+        $this->registerResolver('ref', new RefResolver());
         $this->registerResolver('sprintf', new SprintfResolver());
 
         $this->registerMiddleware('transform', new TransformMiddleware());
@@ -140,25 +140,31 @@ class DataHydrator implements DataResolverInterface {
      * @return mixed Returns the mixed data.
      */
     private function hydrateInternal(array $data, array $params) {
+        $result = [];
         try {
-            $result = [];
             // First resolve as much static data as possible in case there are exceptions.
             $recurse = [];
             foreach ($data as $key => $value) {
-                if (in_array($key, [self::KEY_TYPE, self::KEY_MIDDLEWARE], true) || !is_array($value)) {
+                if (in_array($key, [self::KEY_HYDRATE, self::KEY_MIDDLEWARE], true) || !is_array($value)) {
                     $result[$key] = $value;
                 } else {
                     $result[$key] = null; // placeholder to maintain order
                     $recurse[$key] = $value;
                 }
             }
+            // Handle the special case for a literal value.
+            if (isset($data[self::KEY_HYDRATE]) && $data[self::KEY_HYDRATE] === 'literal' && isset($data['data'])) {
+                $result['data'] = $data['data'];
+                unset($recurse['data']);
+            }
+
             // Resolve any recursive items.
             foreach ($recurse as $key => $value) {
                 $result[$key] = $this->hydrateInternal($value, $params);
             }
 
             // Look for middleware.
-            if (array_key_exists(self::KEY_MIDDLEWARE, $result)) {
+            if (isset($result[self::KEY_MIDDLEWARE])) {
                 $resolver = $this->makeMiddlewareResolver($result[self::KEY_MIDDLEWARE]);
             } else {
                 $resolver = $this;
@@ -181,8 +187,8 @@ class DataHydrator implements DataResolverInterface {
      * @throws ResolverNotFoundException Throws an exception when there isn't a resolver registered.
      */
     public function resolve(array $data, array $params) {
-        if (isset($data[self::KEY_TYPE])) {
-            $type = $data[self::KEY_TYPE];
+        if (isset($data[self::KEY_HYDRATE])) {
+            $type = $data[self::KEY_HYDRATE];
             $resolver = $this->getResolver($type);
 
             $data = $resolver->resolve($data, $params);
@@ -220,8 +226,8 @@ class DataHydrator implements DataResolverInterface {
      *
      * ```json
      * [
-     *     {"$type": "middlewareName", "param1": "value1", "param2": "value2"},
-     *     {"$type": "middlewareName", "param1": "value1", "param2": "value2"}
+     *     {"type": "middlewareName", "param1": "value1", "param2": "value2"},
+     *     {"type": "middlewareName", "param1": "value1", "param2": "value2"}
      * ]
      * ```
      *
@@ -239,7 +245,7 @@ class DataHydrator implements DataResolverInterface {
                 throw new \TypeError('Each middleware must be an array.', 500);
             }
 
-            $middleware = $this->getMiddleware($params[self::KEY_TYPE]);
+            $middleware = $this->getMiddleware($params[self::KEY_MIDDLEWARE_TYPE]);
             $result = new MiddlewareWrapper($middleware, $result, $params);
         }
 
