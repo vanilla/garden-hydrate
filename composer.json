@@ -26,11 +26,11 @@
     "require-dev": {
         "phpunit/phpunit": "^7",
         "vanilla/standards": "^1.3",
-        "vimeo/psalm": "^3.4"
+        "vimeo/psalm": "^3.13"
     },
     "config": {
         "platform": {
-            "php": "7.1"
+            "php": "7.2"
         }
     }
 }
