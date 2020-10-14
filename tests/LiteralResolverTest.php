@@ -21,7 +21,7 @@ class LiteralResolverTest extends TestCase {
     /**
      * Set up test fixtures.
      */
-    public function setUp() {
+    public function setUp(): void {
         parent::setUp();
         $this->resolver = new LiteralResolver();
     }
@@ -35,6 +35,9 @@ class LiteralResolverTest extends TestCase {
         $this->resolver->resolve([], []);
     }
 
+    /**
+     * A literal should not resolve its children.
+     */
     public function testLiteralResolverReserved(): void {
         $hydrator = new DataHydrator();
         $spec = [

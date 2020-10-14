@@ -11,6 +11,18 @@ aliases:
       command: |
         cd ~/workspace/repo
         composer install --optimize-autoloader
+  - &run_php_lint
+    run:
+      name: PHP Lint
+      command: |
+        cd ~/workspace/repo
+        composer run phpcs
+  - &run_php_static
+    run:
+      name: PHP Static Analysis
+      command: |
+        cd ~/workspace/repo
+        ./vendor/bin/psalm
 jobs:
   php_setup:
     docker:
@@ -24,9 +36,21 @@ jobs:
           root: ~/workspace
           paths:
             - repo
-  php_71_tests:
+  php_72_lint:
+    executor: core/php72
+    steps: &php_static_steps
+      - core/checkout
+      - *run_composer
+      - *run_php_lint
+  php_72_static:
+    executor: core/php72
+    steps: &php_static_steps
+      - core/checkout
+      - *run_composer
+      - *run_php_static
+  php_72_tests:
     docker:
-      - image: 'circleci/php:7.1.31-cli'
+      - image: 'circleci/php:7.2.9-cli'
     steps: &php_unit_test_steps
       - *attach_workspace
       - run:
@@ -34,6 +58,11 @@ jobs:
           command: |
             php --version
             composer --version
+      - run:
+          name: Lint
+          command: |
+            cd ~/workspace/repo
+            composer run phpcs
       - run:
           name: Static Analysis
           command: |
@@ -44,25 +73,31 @@ jobs:
           command: |
             cd ~/workspace/repo
             ./vendor/bin/phpunit -c phpunit.xml.dist
-  php_72_tests:
-    docker:
-      - image: 'circleci/php:7.2.9-cli'
-    steps: *php_unit_test_steps
   php_73_tests:
     docker:
       - image: 'circleci/php:7.3.8-cli'
+    steps: *php_unit_test_steps
+  php_74_tests:
+    docker:
+      - image: 'circleci/php:7.4.11-cli'
     steps: *php_unit_test_steps
 workflows:
   version: 2
   commit:
     jobs:
       - php_setup
-      - php_71_tests:
+      - php_72_lint:
+          requires:
+            - php_setup
+      - php_72_static:
           requires:
             - php_setup
       - php_72_tests:
           requires:
             - php_setup
       - php_73_tests:
+          requires:
+            - php_setup
+      - php_74_tests:
           requires:
             - php_setup

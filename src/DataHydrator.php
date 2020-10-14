@@ -7,6 +7,7 @@
 
 namespace Garden\Hydrate;
 
+use Exception;
 use Garden\Hydrate\Exception\MiddlewareNotFoundException;
 use Garden\Hydrate\Exception\ResolverNotFoundException;
 use Garden\Hydrate\Middleware\TransformMiddleware;
@@ -14,6 +15,7 @@ use Garden\Hydrate\Resolvers\LiteralResolver;
 use Garden\Hydrate\Resolvers\ParamResolver;
 use Garden\Hydrate\Resolvers\RefResolver;
 use Garden\Hydrate\Resolvers\SprintfResolver;
+use TypeError;
 
 /**
  * Allows data to by hydrated based on a spec that can include data resolvers or literal data.
@@ -142,26 +144,7 @@ class DataHydrator implements DataResolverInterface {
     private function hydrateInternal(array $data, array $params) {
         $result = [];
         try {
-            // First resolve as much static data as possible in case there are exceptions.
-            $recurse = [];
-            foreach ($data as $key => $value) {
-                if (in_array($key, [self::KEY_HYDRATE, self::KEY_MIDDLEWARE], true) || !is_array($value)) {
-                    $result[$key] = $value;
-                } else {
-                    $result[$key] = null; // placeholder to maintain order
-                    $recurse[$key] = $value;
-                }
-            }
-            // Handle the special case for a literal value.
-            if (isset($data[self::KEY_HYDRATE]) && $data[self::KEY_HYDRATE] === 'literal' && isset($data['data'])) {
-                $result['data'] = $data['data'];
-                unset($recurse['data']);
-            }
-
-            // Resolve any recursive items.
-            foreach ($recurse as $key => $value) {
-                $result[$key] = $this->hydrateInternal($value, $params);
-            }
+            $result = $this->resolveChildren($data, $params);
 
             // Look for middleware.
             if (isset($result[self::KEY_MIDDLEWARE])) {
@@ -171,11 +154,32 @@ class DataHydrator implements DataResolverInterface {
             }
 
             $result = $resolver->resolve($result, $params);
-        } catch (\Exception $ex) {
+        } catch (Exception $ex) {
             $result = $this->exceptionHandler->handleException($ex, $result, $params);
         }
 
         return $result;
+    }
+
+    /**
+     * Resolve the data at a node.
+     *
+     * @param array $data A data node with all children resolved.
+     * @param array $params
+     * @return array|mixed
+     * @throws ResolverNotFoundException Throws an exception when there isn't a resolver registered.
+     */
+    private function resolveSelf(array $data, array $params) {
+        if (isset($data[self::KEY_HYDRATE])) {
+            $type = $data[self::KEY_HYDRATE];
+            $resolver = $this->getResolver($type);
+
+            $data = $resolver->resolve($data, $params);
+        }
+        if (is_array($data)) {
+            unset($data[self::KEY_MIDDLEWARE]);
+        }
+        return $data;
     }
 
     /**
@@ -187,16 +191,7 @@ class DataHydrator implements DataResolverInterface {
      * @throws ResolverNotFoundException Throws an exception when there isn't a resolver registered.
      */
     public function resolve(array $data, array $params) {
-        if (isset($data[self::KEY_HYDRATE])) {
-            $type = $data[self::KEY_HYDRATE];
-            $resolver = $this->getResolver($type);
-
-            $data = $resolver->resolve($data, $params);
-        }
-        if (is_array($data)) {
-            unset($data[self::KEY_MIDDLEWARE]);
-        }
-        return $data;
+        return $this->resolveSelf($data, $params);
     }
 
     /**
@@ -242,7 +237,7 @@ class DataHydrator implements DataResolverInterface {
             $params = array_pop($middlewares);
 
             if (!is_array($params)) {
-                throw new \TypeError('Each middleware must be an array.', 500);
+                throw new TypeError('Each middleware must be an array.', 500);
             }
 
             $middleware = $this->getMiddleware($params[self::KEY_MIDDLEWARE_TYPE]);
@@ -279,5 +274,41 @@ class DataHydrator implements DataResolverInterface {
         }
         $resolver = $this->resolvers[$type];
         return $resolver;
+    }
+
+    /**
+     * Resolve the child nodes of the current node.
+     *
+     * @param array $data
+     * @param array $params
+     * @return array
+     */
+    private function resolveChildren(array $data, array $params): array {
+        $result = [];
+        try {
+            // First resolve as much static data as possible in case there are exceptions.
+            $recurse = [];
+            foreach ($data as $key => $value) {
+                if (in_array($key, [self::KEY_HYDRATE, self::KEY_MIDDLEWARE], true) || !is_array($value)) {
+                    $result[$key] = $value;
+                } else {
+                    $result[$key] = null; // placeholder to maintain order
+                    $recurse[$key] = $value;
+                }
+            }
+            // Handle the special case for a literal value.
+            if (isset($data[self::KEY_HYDRATE]) && $data[self::KEY_HYDRATE] === 'literal' && isset($data['data'])) {
+                $result['data'] = $data['data'];
+                unset($recurse['data']);
+            }
+
+            // Resolve any recursive items.
+            foreach ($recurse as $key => $value) {
+                $result[$key] = $this->hydrateInternal($value, $params);
+            }
+        } catch (Exception $ex) {
+            $result = $this->exceptionHandler->handleException($ex, $result, $params);
+        }
+        return $result;
     }
 }

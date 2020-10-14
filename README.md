@@ -137,6 +137,8 @@ $r = $hydrator->hydrate([
 // $r will be "stop yelling"
 ```
 
+*Note: You could have also passed `'strtolower'` directly to the `FunctionResolver` constructor rather than wrapping it in a closure.* 
+
 ## Handling Exceptions
 
 By default, if there is an exception then it will be thrown. This means that a single exception will wreck the entire hydration. This is often not desirable as you may want to recover from an exception in order display a useful message to the user.
@@ -182,10 +184,10 @@ Middleware is an important feature that allows you to programmatically control t
 
 Garden Hydrate currently supports adding middleware in the spec with the `@middleware` key. You pass it an array of middlewares in the following form:
 
-```json
+```json5
 {
   "@middleware": [
-    {"type":: "middleware-name", "param1":  "value1", "param2": "Value2", ...},
+    {"type": "middleware-name", "param1":  "value1", "param2": "Value2", ...},
     ...
   ]
 }
