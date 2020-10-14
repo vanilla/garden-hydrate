@@ -7,6 +7,7 @@
 
 namespace Garden\Hydrate;
 
+use Exception;
 use Garden\Hydrate\Exception\MiddlewareNotFoundException;
 use Garden\Hydrate\Exception\ResolverNotFoundException;
 use Garden\Hydrate\Middleware\TransformMiddleware;
@@ -14,6 +15,7 @@ use Garden\Hydrate\Resolvers\LiteralResolver;
 use Garden\Hydrate\Resolvers\ParamResolver;
 use Garden\Hydrate\Resolvers\RefResolver;
 use Garden\Hydrate\Resolvers\SprintfResolver;
+use TypeError;
 
 /**
  * Allows data to by hydrated based on a spec that can include data resolvers or literal data.
@@ -152,7 +154,7 @@ class DataHydrator implements DataResolverInterface {
             }
 
             $result = $resolver->resolve($result, $params);
-        } catch (\Exception $ex) {
+        } catch (Exception $ex) {
             $result = $this->exceptionHandler->handleException($ex, $result, $params);
         }
 
@@ -235,7 +237,7 @@ class DataHydrator implements DataResolverInterface {
             $params = array_pop($middlewares);
 
             if (!is_array($params)) {
-                throw new \TypeError('Each middleware must be an array.', 500);
+                throw new TypeError('Each middleware must be an array.', 500);
             }
 
             $middleware = $this->getMiddleware($params[self::KEY_MIDDLEWARE_TYPE]);
@@ -275,6 +277,8 @@ class DataHydrator implements DataResolverInterface {
     }
 
     /**
+     * Resolve the child nodes of the current node.
+     *
      * @param array $data
      * @param array $params
      * @return array
@@ -302,7 +306,7 @@ class DataHydrator implements DataResolverInterface {
             foreach ($recurse as $key => $value) {
                 $result[$key] = $this->hydrateInternal($value, $params);
             }
-        } catch (\Exception $ex) {
+        } catch (Exception $ex) {
             $result = $this->exceptionHandler->handleException($ex, $result, $params);
         }
         return $result;
