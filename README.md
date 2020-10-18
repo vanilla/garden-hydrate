@@ -36,8 +36,10 @@ $spec = [
     '@hydrate' => 'sprintf',
     'format' => 'Hello %s',
     'args' => [
-        '@hydrate' => 'param',
-        'ref' => 'who'
+        [
+            '@hydrate' => 'param',
+            'ref' => 'who'
+        ]
     ]
 ];
 
@@ -132,7 +134,7 @@ $hyrdator->registerResolver('lcase', $lcase);
 
 $r = $hydrator->hydrate([
   '@hyrdate' => 'lcase',
-  'string' = 'STOP YELLING'
+  'string' => 'STOP YELLING'
 ]);
 // $r will be "stop yelling"
 ```
