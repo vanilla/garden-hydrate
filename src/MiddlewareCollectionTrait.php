@@ -7,6 +7,9 @@
 
 namespace Garden\Hydrate;
 
+/**
+ * Apply this to a class to add support for collecting middleware.
+ */
 trait MiddlewareCollectionTrait {
     /**
      * @var MiddlewareInterface[]
@@ -21,9 +24,9 @@ trait MiddlewareCollectionTrait {
     }
 
     /**
+     * Whether or not a middleware exists in the collection.
      *
-     *
-     * @param $middleware
+     * @param string|MiddlewareInterface $middleware The class name of a middleware or a specific instance to look up.
      * @return bool
      */
     public function hasMiddleware($middleware): bool {
@@ -37,6 +40,14 @@ trait MiddlewareCollectionTrait {
         return false;
     }
 
+    /**
+     * Process all of the middleware in the collection.
+     *
+     * @param array $data The data node being resolved.
+     * @param array $params Hyrdration parameters.
+     * @param DataResolverInterface $next
+     * @return mixed
+     */
     public function process(array $data, array $params, DataResolverInterface $next) {
         $resolver = DataHydrator::makeMiddlewareResolver($this->middlewares, $next);
         $r = $resolver->resolve($data, $params);
