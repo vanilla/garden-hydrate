@@ -48,7 +48,7 @@ class MiddlewareWrapper implements DataResolverInterface {
      * @param array $params
      * @return mixed
      */
-    public function resolve(array $data, array $params) {
+    public function resolve(array $data, array $params = []) {
         $allParams = array_replace($params, [DataHydrator::KEY_MIDDLEWARE => $this->params]);
 
         $r = $this->middleware->process($data, $allParams, $this->resolver);

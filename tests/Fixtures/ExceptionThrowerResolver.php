@@ -16,7 +16,7 @@ class ExceptionThrowerResolver implements DataResolverInterface {
     /**
      * {@inheritDoc}
      */
-    public function resolve(array $data, array $params) {
+    public function resolve(array $data, array $params = []) {
         throw new \Exception($data['message'], $data['code'] ?? 500);
     }
 }

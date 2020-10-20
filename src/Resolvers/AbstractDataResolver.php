@@ -33,7 +33,7 @@ abstract class AbstractDataResolver implements ValidatableResolverInterface {
     /**
      * {@inheritDoc}
      */
-    final public function resolve(array $data, array $params) {
+    final public function resolve(array $data, array $params = []) {
         $result = $this->validate($data);
         $result = $this->resolveInternal($result, $params);
         return $result;

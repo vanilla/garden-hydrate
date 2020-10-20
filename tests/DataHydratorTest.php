@@ -8,13 +8,11 @@
 namespace Garden\Hydrate\Tests;
 
 use Garden\Hydrate\DataHydrator;
-use Garden\Hydrate\Exception\MiddlewareNotFoundException;
 use Garden\Hydrate\Exception\ResolverNotFoundException;
 use Garden\Hydrate\NullExceptionHandler;
 use PHPUnit\Framework\TestCase;
 use Garden\Hydrate\Tests\Fixtures\ExceptionThrowerResolver;
 use Garden\Hydrate\Tests\Fixtures\TestExceptionHandler;
-use Garden\Hydrate\Tests\Fixtures\TestStringMiddleware;
 use Garden\Hydrate\Tests\Fixtures\TestStringResolver;
 
 /**
@@ -32,8 +30,8 @@ class DataHydratorTest extends TestCase {
         $this->hydrator = new DataHydrator();
         $this->hydrator
             ->setExceptionHandler(new TestExceptionHandler())
-            ->registerResolver('exception', new ExceptionThrowerResolver())
-            ->registerResolver('str', new TestStringResolver('a'));
+            ->addResolver('exception', new ExceptionThrowerResolver())
+            ->addResolver('str', new TestStringResolver('a'));
     }
 
     /**
@@ -42,7 +40,7 @@ class DataHydratorTest extends TestCase {
     public function testNothing(): void {
         $arr = ['foo' => 'bar'];
 
-        $actual = $this->hydrator->hydrate($arr, []);
+        $actual = $this->hydrator->resolve($arr, []);
         $this->assertEquals($arr, $actual);
     }
 
@@ -51,7 +49,7 @@ class DataHydratorTest extends TestCase {
      */
     public function testRootParam(): void {
         $spec = ['@hydrate' => 'param', 'ref' => 'foo'];
-        $actual = $this->hydrator->hydrate($spec, ['foo' => 'bar']);
+        $actual = $this->hydrator->resolve($spec, ['foo' => 'bar']);
         $this->assertSame('bar', $actual);
     }
 
@@ -60,7 +58,7 @@ class DataHydratorTest extends TestCase {
      */
     public function testNestedType(): void {
         $spec = ['foo' => ['@hydrate' => 'param', 'ref' => 'foo']];
-        $actual = $this->hydrator->hydrate($spec, ['foo' => 'bar']);
+        $actual = $this->hydrator->resolve($spec, ['foo' => 'bar']);
         $this->assertSame(['foo' => 'bar'], $actual);
     }
 
@@ -69,7 +67,7 @@ class DataHydratorTest extends TestCase {
      */
     public function testRecursiveResolution(): void {
         $spec = ['@hydrate' => 'param', 'ref' => ['@hydrate' => 'param', 'ref' => 'foo']];
-        $actual = $this->hydrator->hydrate($spec, ['foo' => 'bar', 'bar' => 'baz']);
+        $actual = $this->hydrator->resolve($spec, ['foo' => 'bar', 'bar' => 'baz']);
         $this->assertSame('baz', $actual);
     }
 
@@ -80,7 +78,7 @@ class DataHydratorTest extends TestCase {
         $spec = ['foo' => 'bar', 'baz' => ['@hydrate' => 'ref', 'ref' => '/foo']];
         $expected = ['foo' => 'bar', 'baz' => 'bar'];
 
-        $actual = $this->hydrator->hydrate($spec);
+        $actual = $this->hydrator->resolve($spec, []);
         $this->assertSame($expected, $actual);
     }
 
@@ -115,7 +113,7 @@ class DataHydratorTest extends TestCase {
             ],
         ];
 
-        $actual = $this->hydrator->hydrate($spec, []);
+        $actual = $this->hydrator->resolve($spec, []);
         $this->assertSame($expected, $actual);
     }
 
@@ -123,14 +121,14 @@ class DataHydratorTest extends TestCase {
      * Test unregistering a resolver.
      */
     public function testUnregisterResolver() {
-        $actual = $this->hydrator->hydrate(['@hydrate' => 'str']);
+        $actual = $this->hydrator->resolve(['@hydrate' => 'str'], []);
         $this->assertSame(['str' => 'a'], $actual);
 
-        $r = $this->hydrator->unregisterResolver('str');
+        $r = $this->hydrator->removeResolver('str');
         $this->assertSame($this->hydrator, $r);
         $this->expectException(ResolverNotFoundException::class);
         $this->expectExceptionCode(404);
-        $actual = $this->hydrator->hydrate(['@hydrate' => 'str']);
+        $actual = $this->hydrator->resolve(['@hydrate' => 'str']);
     }
 
     /**
@@ -146,56 +144,28 @@ class DataHydratorTest extends TestCase {
     }
 
     /**
-     * Test the middleware accessors.
-     */
-    public function testMiddlewareAccessors() {
-        $mw = new TestStringMiddleware('a');
-        $r = $this->hydrator->registerMiddleware('strA', $mw);
-        $this->assertTrue($this->hydrator->isMiddlewareRegistered('strA'));
-        $this->assertSame($this->hydrator, $r);
-
-        $r = $this->hydrator->unregisterMiddleware('strA');
-        $this->assertFalse($this->hydrator->isMiddlewareRegistered('strA'));
-        $this->assertSame($this->hydrator, $r);
-    }
-
-    /**
      * The default exception handler should just throw exceptions.
      */
     public function testDefaultNullExceptionHandler() {
         $hydrator = new DataHydrator();
 
         $this->expectException(ResolverNotFoundException::class);
-        $actual = $hydrator->hydrate(['@hydrate' => 'foo']);
+        $actual = $hydrator->resolve(['@hydrate' => 'foo']);
     }
 
     /**
      * Test a basic data transform integration.
      */
     public function testTransformMiddlewareIntegration() {
-        $spec = ['@hydrate' => 'literal', 'data' => ['a' => ['foo' => 'bar']], DataHydrator::KEY_MIDDLEWARE => [
-                [DataHydrator::KEY_MIDDLEWARE_TYPE => 'transform', 'transform' => ['baz' => '/a/foo']],
-            ]
+        $spec = [
+            '@hydrate' => 'literal', 'data' => ['a' => ['foo' => 'bar']],
+            DataHydrator::KEY_MIDDLEWARE => [
+                'transform' => ['baz' => '/a/foo'],
+            ],
         ];
         $expected = ['baz' => 'bar'];
-        $actual = $this->hydrator->hydrate($spec);
+        $actual = $this->hydrator->resolve($spec);
         $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * Test an invalid middleware.
-     */
-    public function testInvalidMiddleware() {
-        $spec = [
-            '@hydrate' => 'literal',
-            'data' => ['a' => ['foo' => 'bar']],
-            DataHydrator::KEY_MIDDLEWARE => [
-                [DataHydrator::KEY_MIDDLEWARE_TYPE => 'foo'],
-            ]
-        ];
-        $this->expectException(MiddlewareNotFoundException::class);
-        $this->expectExceptionCode(404);
-        $actual = $this->hydrator->hydrate($spec);
     }
 
     /**
@@ -203,7 +173,7 @@ class DataHydratorTest extends TestCase {
      */
     public function testJustMiddlewareRemoval() {
         $spec = ['foo' => 'bar', DataHydrator::KEY_MIDDLEWARE => []];
-        $actual = $this->hydrator->hydrate($spec);
+        $actual = $this->hydrator->resolve($spec);
         $this->assertSame(['foo' => 'bar'], $actual);
     }
 
@@ -214,11 +184,11 @@ class DataHydratorTest extends TestCase {
         $spec = [
             'a' => ['foo' => 'bar'],
             DataHydrator::KEY_MIDDLEWARE => [
-                [DataHydrator::KEY_MIDDLEWARE_TYPE => 'transform', 'transform' => ['baz' => '/a/foo']],
-            ]
+                'transform' => ['baz' => '/a/foo'],
+            ],
         ];
         $expected = ['baz' => 'bar'];
-        $actual = $this->hydrator->hydrate($spec);
+        $actual = $this->hydrator->resolve($spec);
         $this->assertSame($expected, $actual);
     }
 
@@ -233,7 +203,7 @@ class DataHydratorTest extends TestCase {
                 'foo',
             ],
         ];
-        $actual = $this->hydrator->hydrate($spec);
+        $actual = $this->hydrator->resolve($spec);
         $this->assertSame('Hello foo', $actual);
     }
 
@@ -243,11 +213,9 @@ class DataHydratorTest extends TestCase {
     public function testDefaultResolvers(): void {
         $hydrator = new DataHydrator();
 
-        $this->assertTrue($hydrator->isResolverRegistered('ref'));
-        $this->assertTrue($hydrator->isResolverRegistered('param'));
-        $this->assertTrue($hydrator->isResolverRegistered('literal'));
-        $this->assertTrue($hydrator->isResolverRegistered('sprintf'));
-
-        $this->assertTrue($hydrator->isMiddlewareRegistered('transform'));
+        $this->assertTrue($hydrator->hasResolver('ref'));
+        $this->assertTrue($hydrator->hasResolver('param'));
+        $this->assertTrue($hydrator->hasResolver('literal'));
+        $this->assertTrue($hydrator->hasResolver('sprintf'));
     }
 }

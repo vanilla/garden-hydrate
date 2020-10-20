@@ -20,12 +20,15 @@ class TransformMiddleware implements MiddlewareInterface {
      * {@inheritDoc}
      */
     public function process(array $data, array $params, DataResolverInterface $next) {
+        $transform = $data[DataHydrator::KEY_MIDDLEWARE]['transform'] ?? null;
         $data = $next->resolve($data, $params);
 
-        $transform = $params[DataHydrator::KEY_MIDDLEWARE]['transform'];
-        $transformer = new Transformer($transform);
+        if ($transform !== null) {
+            $transformer = new Transformer($transform);
 
-        $result = $transformer->transform($data);
-        return $result;
+            $result = $transformer->transform($data);
+            return $result;
+        }
+        return $data;
     }
 }

@@ -20,5 +20,5 @@ interface DataResolverInterface {
      * @param array $params Any additional global parameters passed to the hyrdrator.
      * @return mixed The resolver can return whatever it wants.
      */
-    public function resolve(array $data, array $params);
+    public function resolve(array $data, array $params = []);
 }
