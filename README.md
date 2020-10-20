@@ -2,6 +2,11 @@
 
 *A JSON based templating language for data.*
 
+[![CircleCI](https://circleci.com/gh/vanilla/garden-hydrate.svg?style=svg&circle-token=88ea96d98486f5168decf0f7fb19ff547a37962d)](https://app.circleci.com/pipelines/github/vanilla/garden-hydrate)
+[![Packagist Version](https://img.shields.io/packagist/v/vanilla/garden-hydrate.svg?style=flat)](https://packagist.org/packages/vanilla/garden-hydrate)
+![MIT License](https://img.shields.io/packagist/l/vanilla/garden-hydrate.svg?style=flat)
+[![CLA](https://cla-assistant.io/readme/badge/vanilla/garden-hydrate)](https://cla-assistant.io/vanilla/garden-hydrate)
+
 In computer science, data hydration involves taking an object that exists in memory, that doesn't yet contain any domain data ("real" data), and then populating it with domain data (such as from a database, from the network, or from a file system). Data hydration can take many forms and often requires custom logic that can be repetitive and tedious to write. Entry Garden Hydrate.
 
 Garden Hydrate lets you define smart, but simple JSON data structures that are then transformed at runtime. It's sort of like a templating language for JSON.

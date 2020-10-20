@@ -8,14 +8,12 @@
 namespace Garden\Hydrate;
 
 use Exception;
-use Garden\Hydrate\Exception\MiddlewareNotFoundException;
 use Garden\Hydrate\Exception\ResolverNotFoundException;
 use Garden\Hydrate\Middleware\TransformMiddleware;
 use Garden\Hydrate\Resolvers\LiteralResolver;
 use Garden\Hydrate\Resolvers\ParamResolver;
 use Garden\Hydrate\Resolvers\RefResolver;
 use Garden\Hydrate\Resolvers\SprintfResolver;
-use TypeError;
 
 /**
  * Allows data to by hydrated based on a spec that can include data resolvers or literal data.
