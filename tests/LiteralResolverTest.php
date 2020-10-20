@@ -47,7 +47,7 @@ class LiteralResolverTest extends TestCase {
                 'data' => 123
             ]
         ];
-        $actual = $hydrator->hydrate($spec);
+        $actual = $hydrator->resolve($spec);
         $expected = [
             DataHydrator::KEY_HYDRATE => 'literal',
             'data' => 123

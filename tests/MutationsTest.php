@@ -4,6 +4,7 @@
  * @copyright 2009-2020 Vanilla Forums Inc.
  * @license MIT
  */
+namespace Garden\Hydrate\Tests;
 
 use Garden\Hydrate\DataHydrator;
 use Garden\Hydrate\Tests\Fixtures\ExceptionThrowerResolver;
@@ -26,8 +27,8 @@ class MutationsTest extends TestCase {
         $this->hydrator = new DataHydrator();
         $this->hydrator
             ->setExceptionHandler(new TestExceptionHandler())
-            ->registerResolver('exception', new ExceptionThrowerResolver())
-            ->registerResolver('str', new TestStringResolver('a'));
+            ->addResolver('exception', new ExceptionThrowerResolver())
+            ->addResolver('str', new TestStringResolver('a'));
     }
 
     /**
@@ -40,16 +41,6 @@ class MutationsTest extends TestCase {
     }
 
     /**
-     * The `'@middleware'` field shouldn't expand.
-     */
-    public function testStaticMiddlewareField() {
-        $spec = [DataHydrator::KEY_MIDDLEWARE => [DataHydrator::KEY_HYDRATE => 'param', 'ref' => 'foo']];
-        $this->expectException(\Throwable::class);
-        $this->expectExceptionCode(500);
-        $actual = $this->hydrator->hydrate($spec, ['foo' => []]);
-    }
-
-    /**
      * Test middleware and a resolver together.
      */
     public function testMiddlewareAndParams() {
@@ -57,13 +48,10 @@ class MutationsTest extends TestCase {
             DataHydrator::KEY_HYDRATE => 'param',
             'ref' => 'foo',
             DataHydrator::KEY_MIDDLEWARE => [
-                [
-                    DataHydrator::KEY_MIDDLEWARE_TYPE => 'transform',
-                    'transform' => '/foo',
-                ],
+                'transform' => '/foo',
             ],
         ];
-        $actual = $this->hydrator->hydrate($spec, ['foo' => ['foo' => 'bar']]);
+        $actual = $this->hydrator->resolve($spec, ['foo' => ['foo' => 'bar']]);
         $this->assertSame('bar', $actual);
     }
 }

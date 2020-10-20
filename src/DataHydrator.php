@@ -21,6 +21,8 @@ use TypeError;
  * Allows data to by hydrated based on a spec that can include data resolvers or literal data.
  */
 class DataHydrator implements DataResolverInterface {
+    use MiddlewareCollectionTrait;
+
     public const KEY_HYDRATE = '@hydrate';
     public const KEY_MIDDLEWARE = '@middleware';
     public const KEY_MIDDLEWARE_TYPE = 'type';
@@ -41,18 +43,24 @@ class DataHydrator implements DataResolverInterface {
      */
     private $exceptionHandler;
 
+
+    /**
+     * @var DataResolverInterface A combination of the middleware and inner resolver for resolving nodes.
+     */
+    private $resolver;
+
     /**
      * DataHydrator constructor.
      */
     public function __construct() {
         $this->setExceptionHandler(new NullExceptionHandler());
 
-        $this->registerResolver('literal', new LiteralResolver());
-        $this->registerResolver('param', new ParamResolver());
-        $this->registerResolver('ref', new RefResolver());
-        $this->registerResolver('sprintf', new SprintfResolver());
+        $this->addResolver('literal', new LiteralResolver());
+        $this->addResolver('param', new ParamResolver());
+        $this->addResolver('ref', new RefResolver());
+        $this->addResolver('sprintf', new SprintfResolver());
 
-        $this->registerMiddleware('transform', new TransformMiddleware());
+        $this->addMiddleware(new TransformMiddleware());
     }
 
     /**
@@ -62,7 +70,7 @@ class DataHydrator implements DataResolverInterface {
      * @param DataResolverInterface $resolver
      * @return $this
      */
-    public function registerResolver(string $type, DataResolverInterface $resolver) {
+    public function addResolver(string $type, DataResolverInterface $resolver) {
         $this->resolvers[$type] = $resolver;
         return $this;
     }
@@ -73,7 +81,7 @@ class DataHydrator implements DataResolverInterface {
      * @param string $type
      * @return $this
      */
-    public function unregisterResolver(string $type) {
+    public function removeResolver(string $type) {
         unset($this->resolvers[$type]);
         return $this;
     }
@@ -84,53 +92,30 @@ class DataHydrator implements DataResolverInterface {
      * @param string $type
      * @return bool
      */
-    public function isResolverRegistered(string $type): bool {
+    public function hasResolver(string $type): bool {
         return isset($this->resolvers[$type]);
     }
 
     /**
-     * Register a middleware that can be placed on a resolver.
+     * Hydrate a data specification.
      *
-     * @param string $name
-     * @param MiddlewareInterface $middleware
-     * @return $this
-     */
-    public function registerMiddleware(string $name, MiddlewareInterface $middleware): self {
-        $this->middlewares[$name] = $middleware;
-        return $this;
-    }
-
-    /**
-     * Unregister an available middleware.
+     * This is the main
      *
-     * @param string $name
-     * @return $this
-     */
-    public function unregisterMiddleware(string $name): self {
-        unset($this->middlewares[$name]);
-        return $this;
-    }
-
-    /**
-     * Returns whether or not a middleware is registered.
-     *
-     * @param string $name
-     * @return bool
-     */
-    public function isMiddlewareRegistered(string $name): bool {
-        return isset($this->middlewares[$name]);
-    }
-
-    /**
-     * Hyrdate a data specification.
-     *
-     * @param array $spec The specification that defines the data.
+     * @param array $data The specification that defines the data.
      * @param array $params Additional contextual data.
      * @return mixed Returns the hydrated data.
      */
-    public function hydrate(array $spec, array $params = []) {
-        $params[self::KEY_ROOT] = $spec;
-        $result = $this->hydrateInternal($spec, $params);
+    public function resolve(array $data, array $params = []) {
+        $params[self::KEY_ROOT] = $data;
+
+        $this->resolver = self::makeMiddlewareResolver(
+            $this->middlewares,
+            self::makeResolver(function (array $data, array $params) {
+                return $this->resolveNode($data, $params);
+            })
+        );
+        $result = $this->resolveInternal($data, $params);
+
         return $result;
     }
 
@@ -141,19 +126,11 @@ class DataHydrator implements DataResolverInterface {
      * @param array $params Additional contextual data.
      * @return mixed Returns the mixed data.
      */
-    private function hydrateInternal(array $data, array $params) {
+    private function resolveInternal(array $data, array $params) {
         $result = [];
         try {
             $result = $this->resolveChildren($data, $params);
-
-            // Look for middleware.
-            if (isset($result[self::KEY_MIDDLEWARE])) {
-                $resolver = $this->makeMiddlewareResolver($result[self::KEY_MIDDLEWARE]);
-            } else {
-                $resolver = $this;
-            }
-
-            $result = $resolver->resolve($result, $params);
+            $result = $this->resolver->resolve($result, $params);
         } catch (Exception $ex) {
             $result = $this->exceptionHandler->handleException($ex, $result, $params);
         }
@@ -169,7 +146,7 @@ class DataHydrator implements DataResolverInterface {
      * @return array|mixed
      * @throws ResolverNotFoundException Throws an exception when there isn't a resolver registered.
      */
-    private function resolveSelf(array $data, array $params) {
+    private function resolveNode(array $data, array $params) {
         if (isset($data[self::KEY_HYDRATE])) {
             $type = $data[self::KEY_HYDRATE];
             $resolver = $this->getResolver($type);
@@ -180,18 +157,6 @@ class DataHydrator implements DataResolverInterface {
             unset($data[self::KEY_MIDDLEWARE]);
         }
         return $data;
-    }
-
-    /**
-     * Resolve the data at a node.
-     *
-     * @param array $data
-     * @param array $params
-     * @return array|mixed
-     * @throws ResolverNotFoundException Throws an exception when there isn't a resolver registered.
-     */
-    public function resolve(array $data, array $params) {
-        return $this->resolveSelf($data, $params);
     }
 
     /**
@@ -215,53 +180,6 @@ class DataHydrator implements DataResolverInterface {
     }
 
     /**
-     * Take an array of middleware and create a resolver for the chain.
-     *
-     * The middleware chain is an array in the form:
-     *
-     * ```json
-     * [
-     *     {"type": "middlewareName", "param1": "value1", "param2": "value2"},
-     *     {"type": "middlewareName", "param1": "value1", "param2": "value2"}
-     * ]
-     * ```
-     *
-     * @param array $middlewares The middleware spec array.
-     * @return DataResolverInterface
-     * @throws MiddlewareNotFoundException Throws an exception if one of the middlewares is not found.
-     */
-    private function makeMiddlewareResolver(array $middlewares): DataResolverInterface {
-        $result = $this;
-
-        while (!empty($middlewares)) {
-            $params = array_pop($middlewares);
-
-            if (!is_array($params)) {
-                throw new TypeError('Each middleware must be an array.', 500);
-            }
-
-            $middleware = $this->getMiddleware($params[self::KEY_MIDDLEWARE_TYPE]);
-            $result = new MiddlewareWrapper($middleware, $result, $params);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get a middleware from the registered middlewares.
-     *
-     * @param string $name
-     * @return MiddlewareInterface
-     * @throws MiddlewareNotFoundException Throws an exception if the middleware isn't registered.
-     */
-    private function getMiddleware(string $name): MiddlewareInterface {
-        if (!$this->isMiddlewareRegistered($name)) {
-            throw new MiddlewareNotFoundException("Middleware not found: $name");
-        }
-        return $this->middlewares[$name];
-    }
-
-    /**
      * Get a resolver from the registered resolvers.
      *
      * @param string $type
@@ -269,7 +187,7 @@ class DataHydrator implements DataResolverInterface {
      * @throws ResolverNotFoundException Throws an exception if the resolver isn't registered.
      */
     private function getResolver(string $type): DataResolverInterface {
-        if (!$this->isResolverRegistered($type)) {
+        if (!$this->hasResolver($type)) {
             throw new ResolverNotFoundException("Resolver not registered: $type");
         }
         $resolver = $this->resolvers[$type];
@@ -304,11 +222,90 @@ class DataHydrator implements DataResolverInterface {
 
             // Resolve any recursive items.
             foreach ($recurse as $key => $value) {
-                $result[$key] = $this->hydrateInternal($value, $params);
+                $result[$key] = $this->resolveInternal($value, $params);
             }
         } catch (Exception $ex) {
             $result = $this->exceptionHandler->handleException($ex, $result, $params);
         }
         return $result;
+    }
+
+    /**
+     * Make a data resolver out of a collection of middleware and an inner resolver.
+     *
+     * @param MiddlewareInterface[] $middlewares
+     * @param DataResolverInterface $inner
+     * @return DataResolverInterface
+     */
+    public static function makeMiddlewareResolver(array $middlewares, DataResolverInterface $inner): DataResolverInterface {
+        $resolver = $inner;
+        foreach ($middlewares as $middleware) {
+            $resolver = new class($middleware, $resolver) implements DataResolverInterface {
+                /**
+                 * @var MiddlewareInterface
+                 */
+                private $middleware;
+
+                /**
+                 * @var DataResolverInterface
+                 */
+                private $next;
+
+                /**
+                 * Construct a pointer for a middleware.
+                 *
+                 * @param MiddlewareInterface $middleware
+                 * @param DataResolverInterface $next
+                 */
+                public function __construct(MiddlewareInterface $middleware, DataResolverInterface $next) {
+                    $this->middleware = $middleware;
+                    $this->next = $next;
+                }
+
+                /**
+                 * Resolve the middleware against the next resolver.
+                 *
+                 * @param array $data
+                 * @param array $params
+                 * @return mixed
+                 */
+                public function resolve(array $data, array $params = []) {
+                    $r = $this->middleware->process($data, $params, $this->next);
+                    return $r;
+                }
+            };
+        }
+        return $resolver;
+    }
+
+    /**
+     * Make a data resolver out of a function that implements the `resolve()` method.
+     *
+     * This is a convenience function to avoid having to create a new class everytime you want a resolver.
+     *
+     * @param callable $resolver
+     * @return DataResolverInterface
+     */
+    public static function makeResolver(callable $resolver): DataResolverInterface {
+        return new class($resolver) implements DataResolverInterface {
+            private $resolver;
+
+            /**
+             * Constructor.
+             *
+             * @param callable $resolver
+             */
+            public function __construct(callable $resolver) {
+                $this->resolver = $resolver;
+            }
+
+            /**
+             * {@inheritDoc}
+             */
+            public function resolve(array $data, array $params = []) {
+                $r = ($this->resolver)($data, $params);
+                return $r;
+            }
+        };
     }
 }

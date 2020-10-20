@@ -6,7 +6,7 @@ In computer science, data hydration involves taking an object that exists in mem
 
 Garden Hydrate lets you define smart, but simple JSON data structures that are then transformed at runtime. It's sort of like a templating language for JSON.
 
-Most work is done with the `DataHydrator` class. You call `hyrdate` and provide it a spec and an optional parameter array. Hyrdate then parses the spec, transforming it into the result.
+Most work is done with the `DataHydrator` class. You call `resolve` and provide it a spec, and an optional parameter array. The hyrdrator then parses the spec, transforming it into the result.
 
 ## Using the DataHydrator Class
 
@@ -22,7 +22,7 @@ $spec = [
 ];
 
 $hydrator = new DataHydrator();
-$result = $hydrator->hydrate($spec);
+$result = $hydrator->resolve($spec);
 
 // $result will be 'Hello World'
 ```
@@ -44,7 +44,7 @@ $spec = [
 ];
 
 $hydrator = new DataHydrator();
-$result = $hydrator->hydrate($spec, ['who' => 'Foo']);
+$result = $hydrator->resolve($spec, ['who' => 'Foo']);
 
 // $result will be 'Hello Foo'
 ```
@@ -118,8 +118,8 @@ Call `sprintf()` on the node. The node uses the `format` key and the `args` key 
 The `DataHydrator` class doesn't provide much functionality with its built-in resolvers. To really unlock the power of the library you will want to add your own resolvers. To do so follow these steps:
 
 1. Make a class that implements the `DataResolverInterface` interface. You need to implement a single `resolve()` method.
-2. Optionally implement the `ValidatableResolverInterface` if you want your resolver to validate its spec before resolution. You need to implement a signle `validate()` method. This recommended for providing a good developer experience.
-3. Register your resolver using `DataHydrator::registerResolver()`.
+2. Optionally implement the `ValidatableResolverInterface` if you want your resolver to validate its spec before resolution. You need to implement a single `validate()` method. This recommended for providing a good developer experience.
+3. Register your resolver using `DataHydrator::addResolver()`.
 4. Reference your resolver by name the same as any other resolver with the `@hyrdate` key.
 
 ### Example
@@ -130,9 +130,9 @@ Let's take an example where we want to have an `lcase` resolver to lowercase str
 $lcase = new FunctionResolver(function (string $string) {
   return strtolower($string);
 });
-$hyrdator->registerResolver('lcase', $lcase);
+$hydrator->addResolver('lcase', $lcase);
 
-$r = $hydrator->hydrate([
+$r = $hydrator->resolve([
   '@hyrdate' => 'lcase',
   'string' => 'STOP YELLING'
 ]);
@@ -182,34 +182,44 @@ Generally, you want to decide on acceptable error boundaries in your data and ha
 
 *The middleware implementation is very much beta and subject to change. Consider it unsupported for now as it is subject to change.*
 
-Middleware is an important feature that allows you to programmatically control the behavior of hydration in order to implement support for things like caching, logging, generic data transformation, debugging add-ons, etc. There could be any number of different domain specific implementations of these facilities, so it's better to provide a mechanism to add them rather than add those features in a way that may not be desirable to a specific implementation. 
+Middleware is an important feature that allows you to programmatically control the behavior of hydration in order to implement support for things like caching, logging, data transformation, debugging add-ons, etc. There could be any number of different domain specific implementations of these facilities, so it's better to provide a mechanism to add them rather than add those features in a way that may not be desirable to a specific implementation.
 
-Garden Hydrate currently supports adding middleware in the spec with the `@middleware` key. You pass it an array of middlewares in the following form:
+To write middleware, you create a class that implements the `MiddlewareInterface` and then register it with the `DataHydrator::addMiddleware()` method. The middleware contains one method: `process()`. It is passed a data the data from the node you want to process, the parameters passed to `resolve()` and the `$next` resolver you are responsible for calling.
+
+If you are familiar with middleware, then the `$next` parameter should be familiar. If not, it will resolve the data. It is passed as a `DataResolverInterface` so that you can control when your middleware executes.
+
+- If you want to augment the data before it is resolved then modify the `$data` or `$params` then call `$next->resolve()`.
+- If you want to augment the result then call `$next->resolve()` then make your middleware do its thing.
+- If you want to do something instead of processing the node then don't call `$next->resolve()` at all. This is how caching is commonly implemented.
+
+Sometimes your middleware is configured globally at instantiation, and sometimes you want to configure it based on data passed in the transformation. If you want to configure the middleware on the data then you should read the middleware from the `@middleware` key on the data. The convention is that you define a key with your middleware's name and then put the parameters there:
 
 ```json5
 {
-  "@middleware": [
-    {"type": "middleware-name", "param1":  "value1", "param2": "Value2", ...},
+  "@middleware": {
+    "middleware-name": {"param1":  "value1", "param2": "Value2", ...},
     ...
-  ]
+  }
 }
 ```
 
-The middlewares will wrap the node when encountered and they will be processed in order.
+Your middleware would be responsible for reading its configuration and acting on it. If it doesn't apply to the node then just return `$next->resolve()`.
+
+Middleware is a very powerful paradigm that can add great functionality to the hydrator. Just be careful that your middleware is robust. It should generally always call `$next->resolve()` and return that result unless you specifically don't want to. If you don't call `$next->resolve()` then the node won't resolve at all.
 
 ### The `transform` Middleware
 
 The `transform` middleware is used to tranform the resolved data on the node using a [Garden JSONT](https://github.com/vanilla/garden-jsont) spec. You can apply it like so:
 
-```json
+```json5
 {
-  "@middleware": [
-    {"type": "transform", "transform":  { ... }}
-  ]
+  "@middleware": {
+    "transform": { "key": "json ref", ... },
+  }
 }
 ```
 
-This is a handy way to tidy up some slightly off spec API output to match a standardized format. Currently. you cannot use the `@hydrate` keyword within the `@middleware` key, but I could be convinced to lift this restriction if I can be convinced it won't be abused ;)
+This is a handy way to tidy up some slightly off spec API output to match a standardized format. Currently, you cannot use the `@hydrate` keyword within the `@middleware` key, but I could be persuaded to lift this restriction if I can be convinced it won't be abused ;)
 
  
 ## Case Studies
