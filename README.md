@@ -127,6 +127,7 @@ The `DataHydrator` class doesn't provide much functionality with its built-in re
 Let's take an example where we want to have an `lcase` resolver to lowercase strings. Garden Hydrate provides a nifty `FunctionResolver` helper class to help you map any callable to a resolver using reflection.
 
 ```php
+$hydrator = new \Garden\Hydrate\DataHydrator();
 $lcase = new FunctionResolver(function (string $string) {
   return strtolower($string);
 });
@@ -197,8 +198,8 @@ Sometimes your middleware is configured globally at instantiation, and sometimes
 ```json5
 {
   "@middleware": {
-    "middleware-name": {"param1":  "value1", "param2": "Value2", ...},
-    ...
+    "middleware-name": {"param1":  "value1", "param2": "Value2", /* ... */ },
+    // ...
   }
 }
 ```
@@ -214,7 +215,7 @@ The `transform` middleware is used to tranform the resolved data on the node usi
 ```json5
 {
   "@middleware": {
-    "transform": { "key": "json ref", ... },
+    "transform": { "key": "json ref", /* ... */ },
   }
 }
 ```
