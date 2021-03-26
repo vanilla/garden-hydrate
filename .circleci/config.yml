@@ -9,6 +9,8 @@ aliases:
     run:
       name: Install Composer Packages
       command: |
+        php --version
+        composer --version
         cd ~/workspace/repo
         composer install --optimize-autoloader
   - &run_php_lint
