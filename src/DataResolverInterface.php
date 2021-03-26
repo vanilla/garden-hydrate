@@ -10,7 +10,7 @@ namespace Garden\Hydrate;
 /**
  * An interface for data resolvers.
  *
- * Data resolvers are responsible for hydrating the data of a certain '@hydrate' key.
+ * Data resolvers are responsible for hydrating the data of a certain '$hydrate' key.
  */
 interface DataResolverInterface {
     /**

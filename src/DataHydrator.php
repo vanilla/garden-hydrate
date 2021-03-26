@@ -21,10 +21,10 @@ use Garden\Hydrate\Resolvers\SprintfResolver;
 class DataHydrator implements DataResolverInterface {
     use MiddlewareCollectionTrait;
 
-    public const KEY_HYDRATE = '@hydrate';
-    public const KEY_MIDDLEWARE = '@middleware';
+    public const KEY_HYDRATE = '$hydrate';
+    public const KEY_MIDDLEWARE = '$middleware';
     public const KEY_MIDDLEWARE_TYPE = 'type';
-    public const KEY_ROOT = '@root';
+    public const KEY_ROOT = '$root';
 
     /**
      * @var DataResolverInterface[]
