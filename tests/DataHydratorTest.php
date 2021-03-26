@@ -48,7 +48,7 @@ class DataHydratorTest extends TestCase {
      * The spec should be able to return a single context element.
      */
     public function testRootParam(): void {
-        $spec = ['@hydrate' => 'param', 'ref' => 'foo'];
+        $spec = ['$hydrate' => 'param', 'ref' => 'foo'];
         $actual = $this->hydrator->resolve($spec, ['foo' => 'bar']);
         $this->assertSame('bar', $actual);
     }
@@ -57,7 +57,7 @@ class DataHydratorTest extends TestCase {
      * I should be able to resolve a nested array.
      */
     public function testNestedType(): void {
-        $spec = ['foo' => ['@hydrate' => 'param', 'ref' => 'foo']];
+        $spec = ['foo' => ['$hydrate' => 'param', 'ref' => 'foo']];
         $actual = $this->hydrator->resolve($spec, ['foo' => 'bar']);
         $this->assertSame(['foo' => 'bar'], $actual);
     }
@@ -66,7 +66,7 @@ class DataHydratorTest extends TestCase {
      * I should be able to resolve arguments to a parent resolver.
      */
     public function testRecursiveResolution(): void {
-        $spec = ['@hydrate' => 'param', 'ref' => ['@hydrate' => 'param', 'ref' => 'foo']];
+        $spec = ['$hydrate' => 'param', 'ref' => ['$hydrate' => 'param', 'ref' => 'foo']];
         $actual = $this->hydrator->resolve($spec, ['foo' => 'bar', 'bar' => 'baz']);
         $this->assertSame('baz', $actual);
     }
@@ -75,7 +75,7 @@ class DataHydratorTest extends TestCase {
      * A reference should be able to reference the root data.
      */
     public function testRootRef(): void {
-        $spec = ['foo' => 'bar', 'baz' => ['@hydrate' => 'ref', 'ref' => '/foo']];
+        $spec = ['foo' => 'bar', 'baz' => ['$hydrate' => 'ref', 'ref' => '/foo']];
         $expected = ['foo' => 'bar', 'baz' => 'bar'];
 
         $actual = $this->hydrator->resolve($spec, []);
@@ -88,11 +88,11 @@ class DataHydratorTest extends TestCase {
     public function testExceptionBoundary(): void {
         $spec = [
             [
-                '@hydrate' => 'exception',
+                '$hydrate' => 'exception',
                 'message' => 'outer',
                 'throw' => false,
                 'nest' => [
-                    '@hydrate' => 'exception',
+                    '$hydrate' => 'exception',
                     'message' => 'inner'
                 ],
             ],
@@ -121,14 +121,14 @@ class DataHydratorTest extends TestCase {
      * Test unregistering a resolver.
      */
     public function testUnregisterResolver() {
-        $actual = $this->hydrator->resolve(['@hydrate' => 'str'], []);
+        $actual = $this->hydrator->resolve(['$hydrate' => 'str'], []);
         $this->assertSame(['str' => 'a'], $actual);
 
         $r = $this->hydrator->removeResolver('str');
         $this->assertSame($this->hydrator, $r);
         $this->expectException(ResolverNotFoundException::class);
         $this->expectExceptionCode(404);
-        $actual = $this->hydrator->resolve(['@hydrate' => 'str']);
+        $actual = $this->hydrator->resolve(['$hydrate' => 'str']);
     }
 
     /**
@@ -150,7 +150,7 @@ class DataHydratorTest extends TestCase {
         $hydrator = new DataHydrator();
 
         $this->expectException(ResolverNotFoundException::class);
-        $actual = $hydrator->resolve(['@hydrate' => 'foo']);
+        $actual = $hydrator->resolve(['$hydrate' => 'foo']);
     }
 
     /**
@@ -158,7 +158,7 @@ class DataHydratorTest extends TestCase {
      */
     public function testTransformMiddlewareIntegration() {
         $spec = [
-            '@hydrate' => 'literal', 'data' => ['a' => ['foo' => 'bar']],
+            '$hydrate' => 'literal', 'data' => ['a' => ['foo' => 'bar']],
             DataHydrator::KEY_MIDDLEWARE => [
                 'transform' => ['baz' => '/a/foo'],
             ],
@@ -169,7 +169,7 @@ class DataHydratorTest extends TestCase {
     }
 
     /**
-     * The `'@middleware'` key should always be removed.
+     * The `'$middleware'` key should always be removed.
      */
     public function testJustMiddlewareRemoval() {
         $spec = ['foo' => 'bar', DataHydrator::KEY_MIDDLEWARE => []];

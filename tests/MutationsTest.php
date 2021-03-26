@@ -32,7 +32,7 @@ class MutationsTest extends TestCase {
     }
 
     /**
-     * The `'@hydrate'` field shouldn't expand.
+     * The `'$hydrate'` field shouldn't expand.
      */
     public function testStaticTypeField() {
         $spec = [DataHydrator::KEY_HYDRATE => [DataHydrator::KEY_HYDRATE => 'param', 'ref' => 'foo']];

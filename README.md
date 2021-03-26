@@ -19,7 +19,7 @@ Here is a super basic example that shows you how hydrate works.
 
 ```php
 $spec = [
-    '@hydrate' => 'sprintf',
+    '$hydrate' => 'sprintf',
     'format' => 'Hello %s',
     'args' => [
         'World'
@@ -32,17 +32,17 @@ $result = $hydrator->resolve($spec);
 // $result will be 'Hello World'
 ```
 
-You can see the special `@hydrate` key. Whenever the hydrator sees that key it looks for a resolver that will decide how to resolve the array. The above example uses the built in `sprintf` resolver that just calls `sprintf()` with arguments supplied in other keys.
+You can see the special `$hydrate` key. Whenever the hydrator sees that key it looks for a resolver that will decide how to resolve the array. The above example uses the built in `sprintf` resolver that just calls `sprintf()` with arguments supplied in other keys.
 
 Let's expand on the above example to use another built in resolver.
 
 ```php
 $spec = [
-    '@hydrate' => 'sprintf',
+    '$hydrate' => 'sprintf',
     'format' => 'Hello %s',
     'args' => [
         [
-            '@hydrate' => 'param',
+            '$hydrate' => 'param',
             'ref' => 'who'
         ]
     ]
@@ -70,7 +70,7 @@ Resolve to a literal value under the `data` key. Useful when you want to use the
 {
   "@hyrdrate": "literal",
   "data": {
-    "@hydrate": "literal",
+    "$hydrate": "literal",
     "data": "Nothing here will get resolved."
   }
 }
@@ -84,7 +84,7 @@ Resolve to a parameter with the `ref` key. The value of `ref` should be a JSON r
 
 ```json
 {
-  "@hydrate": "param",
+  "$hydrate": "param",
   "ref": "path/to/key"
 }
 ```
@@ -95,7 +95,7 @@ Resolve to a reference within the current resolved spec. The reference is in the
 
 ```json
 {
-  "@hydrate": "ref",
+  "$hydrate": "ref",
   "ref": "/path/to/key"
 }
 ```
@@ -110,7 +110,7 @@ Call `sprintf()` on the node. The node uses the `format` key and the `args` key 
 
 ```json
 {
-    "@hydrate": "sprintf",
+    "$hydrate": "sprintf",
     "format": "Hello %s",
     "args": [
     	"World"
@@ -198,11 +198,11 @@ If you are familiar with middleware, then the `$next` parameter should be famili
 - If you want to augment the result then call `$next->resolve()` then make your middleware do its thing.
 - If you want to do something instead of processing the node then don't call `$next->resolve()` at all. This is how caching is commonly implemented.
 
-Sometimes your middleware is configured globally at instantiation, and sometimes you want to configure it based on data passed in the transformation. If you want to configure the middleware on the data then you should read the middleware from the `@middleware` key on the data. The convention is that you define a key with your middleware's name and then put the parameters there:
+Sometimes your middleware is configured globally at instantiation, and sometimes you want to configure it based on data passed in the transformation. If you want to configure the middleware on the data then you should read the middleware from the `$middleware` key on the data. The convention is that you define a key with your middleware's name and then put the parameters there:
 
 ```json5
 {
-  "@middleware": {
+  "$middleware": {
     "middleware-name": {"param1":  "value1", "param2": "Value2", /* ... */ },
     // ...
   }
@@ -219,13 +219,13 @@ The `transform` middleware is used to tranform the resolved data on the node usi
 
 ```json5
 {
-  "@middleware": {
+  "$middleware": {
     "transform": { "key": "json ref", /* ... */ },
   }
 }
 ```
 
-This is a handy way to tidy up some slightly off spec API output to match a standardized format. Currently, you cannot use the `@hydrate` keyword within the `@middleware` key, but I could be persuaded to lift this restriction if I can be convinced it won't be abused ;)
+This is a handy way to tidy up some slightly off spec API output to match a standardized format. Currently, you cannot use the `$hydrate` keyword within the `$middleware` key, but I could be persuaded to lift this restriction if I can be convinced it won't be abused ;)
 
  
 ## Case Studies
@@ -238,7 +238,7 @@ Let's say you are providing some static strings that will be displayed to the us
 
 ```json
 {
-  "@hydrate": "translate",
+  "$hydrate": "translate",
   "string": "Translation code"
 }
 ```
@@ -248,7 +248,7 @@ Let's look at a basic example.
 ```json
 {
   "title": {
-    "@hydrate": "translate",
+    "$hydrate": "translate",
     "string": "Hello World"
   }
 }
@@ -270,7 +270,7 @@ Let's say we want to implement the ability to wrap several API calls into a sing
 
 ```json
 {
-  "@hydrate": "api",
+  "$hydrate": "api",
   "path": "/resource/path",
   "query": {}
 }
@@ -281,11 +281,11 @@ Let's see how this might look in practice:
 ```json
 {
   "discussion": {
-    "@hydrate": "api",
+    "$hydrate": "api",
     "path": "/discussions/123"
   },
   "comments": {
-    "@hydrate": "api",
+    "$hydrate": "api",
     "path": "/comments",
     "query": {
       "discussionID": 123
