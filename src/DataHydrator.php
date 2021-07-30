@@ -8,17 +8,21 @@
 namespace Garden\Hydrate;
 
 use Exception;
+use Garden\Hydrate\Exception\InvalidHydrateSpecException;
 use Garden\Hydrate\Exception\ResolverNotFoundException;
 use Garden\Hydrate\Middleware\TransformMiddleware;
+use Garden\Hydrate\Resolvers\AbstractDataResolver;
 use Garden\Hydrate\Resolvers\LiteralResolver;
 use Garden\Hydrate\Resolvers\ParamResolver;
 use Garden\Hydrate\Resolvers\RefResolver;
 use Garden\Hydrate\Resolvers\SprintfResolver;
+use Garden\Hydrate\Schema\JsonSchemaGenerator;
+use Garden\Schema\Schema;
 
 /**
  * Allows data to by hydrated based on a spec that can include data resolvers or literal data.
  */
-class DataHydrator implements DataResolverInterface {
+class DataHydrator {
     use MiddlewareCollectionTrait;
 
     public const KEY_HYDRATE = '$hydrate';
@@ -27,7 +31,7 @@ class DataHydrator implements DataResolverInterface {
     public const KEY_ROOT = '$root';
 
     /**
-     * @var DataResolverInterface[]
+     * @var AbstractDataResolver[]
      */
     private $resolvers = [];
 
@@ -41,7 +45,6 @@ class DataHydrator implements DataResolverInterface {
      */
     private $exceptionHandler;
 
-
     /**
      * @var DataResolverInterface A combination of the middleware and inner resolver for resolving nodes.
      */
@@ -53,23 +56,27 @@ class DataHydrator implements DataResolverInterface {
     public function __construct() {
         $this->setExceptionHandler(new NullExceptionHandler());
 
-        $this->addResolver('literal', new LiteralResolver());
-        $this->addResolver('param', new ParamResolver());
-        $this->addResolver('ref', new RefResolver());
-        $this->addResolver('sprintf', new SprintfResolver());
+        $this->addResolver(new LiteralResolver());
+        $this->addResolver(new ParamResolver());
+        $this->addResolver(new RefResolver());
+        $this->addResolver(new SprintfResolver());
 
         $this->addMiddleware(new TransformMiddleware());
+    }
+
+    public function getSchemaGenerator(): JsonSchemaGenerator {
+        $generator = new JsonSchemaGenerator($this->resolvers, $this->middlewares);
+        return $generator;
     }
 
     /**
      * Add a new resolver.
      *
-     * @param string $type
-     * @param DataResolverInterface $resolver
+     * @param AbstractDataResolver $resolver
      * @return $this
      */
-    public function addResolver(string $type, DataResolverInterface $resolver) {
-        $this->resolvers[$type] = $resolver;
+    public function addResolver(AbstractDataResolver $resolver) {
+        $this->resolvers[$resolver->getType()] = $resolver;
         return $this;
     }
 
@@ -143,10 +150,16 @@ class DataHydrator implements DataResolverInterface {
      * @param array $params
      * @return array|mixed
      * @throws ResolverNotFoundException Throws an exception when there isn't a resolver registered.
+     * @throws InvalidHydrateSpecException Throws if the hydrate key field is invalid.
      */
     private function resolveNode(array $data, array $params) {
         if (isset($data[self::KEY_HYDRATE])) {
             $type = $data[self::KEY_HYDRATE];
+            if (!is_string($type)) {
+                $json = json_encode($type, JSON_PRETTY_PRINT);
+                $hydrateKey = self::KEY_HYDRATE;
+                throw new InvalidHydrateSpecException("The ${hydrateKey} must be a string. Instead got: $json");
+            }
             $resolver = $this->getResolver($type);
 
             $data = $resolver->resolve($data, $params);
@@ -271,6 +284,14 @@ class DataHydrator implements DataResolverInterface {
                     $r = $this->middleware->process($data, $params, $this->next);
                     return $r;
                 }
+
+                /**
+                 * @inheritDoc
+                 */
+                public function getType(): string {
+                    $class = get_class($this->middleware);
+                    return "middleware($class)";
+                }
             };
         }
         return $resolver;
@@ -304,6 +325,30 @@ class DataHydrator implements DataResolverInterface {
                 $r = ($this->resolver)($data, $params);
                 return $r;
             }
+
+            /**
+             * @inheritDoc
+             */
+            public function getType(): string {
+                $name = DataHydrator::getCallableName($this->resolver);
+                return "callable($name)";
+            }
         };
+    }
+
+    public static function getCallableName(callable $callable): string {
+        if (is_string($callable)) {
+            return trim($callable);
+        } elseif (is_array($callable)) {
+            if (is_object($callable[0])) {
+                return sprintf("%s::%s", get_class($callable[0]), trim($callable[1]));
+            } else {
+                return sprintf("%s::%s", trim($callable[0]), trim($callable[1]));
+            }
+        } elseif ($callable instanceof \Closure) {
+            return 'closure';
+        } else {
+            return 'unknown';
+        }
     }
 }

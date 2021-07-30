@@ -14,7 +14,10 @@ use Garden\Schema\Schema;
  * A resolver that grabs its data from passed parameters.
  */
 final class ParamResolver extends AbstractDataResolver {
+
     use ReferenceResolverTrait;
+
+    public const TYPE = "param";
 
     /**
      * ParamResolver constructor.
@@ -43,5 +46,12 @@ final class ParamResolver extends AbstractDataResolver {
 
         $result = $this->resolveReference($ref, $params, $params, $found);
         return $found ? $result : $default;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getType(): string {
+        return self::TYPE;
     }
 }

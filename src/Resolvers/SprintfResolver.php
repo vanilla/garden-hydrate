@@ -13,6 +13,9 @@ use Garden\Schema\Schema;
  * A data resolver that calls `sprintf()`.
  */
 class SprintfResolver extends AbstractDataResolver {
+
+    public const TYPE = "sprintf";
+
     /**
      * SprintfResolver constructor.
      */
@@ -34,5 +37,12 @@ class SprintfResolver extends AbstractDataResolver {
         $args = $data['args'] ?? [];
         $result = sprintf($data['format'], ...$args);
         return $result;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getType(): string {
+        return self::TYPE;
     }
 }

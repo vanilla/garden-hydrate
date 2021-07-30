@@ -7,6 +7,7 @@
 namespace Garden\Hydrate\Tests;
 
 use Garden\Hydrate\DataHydrator;
+use Garden\Hydrate\Exception\InvalidHydrateSpecException;
 use Garden\Hydrate\Tests\Fixtures\ExceptionThrowerResolver;
 use Garden\Hydrate\Tests\Fixtures\TestExceptionHandler;
 use Garden\Hydrate\Tests\Fixtures\TestStringResolver;
@@ -27,8 +28,8 @@ class MutationsTest extends TestCase {
         $this->hydrator = new DataHydrator();
         $this->hydrator
             ->setExceptionHandler(new TestExceptionHandler())
-            ->addResolver('exception', new ExceptionThrowerResolver())
-            ->addResolver('str', new TestStringResolver('a'));
+            ->addResolver(new ExceptionThrowerResolver())
+            ->addResolver(new TestStringResolver('a'));
     }
 
     /**
@@ -36,8 +37,8 @@ class MutationsTest extends TestCase {
      */
     public function testStaticTypeField() {
         $spec = [DataHydrator::KEY_HYDRATE => [DataHydrator::KEY_HYDRATE => 'param', 'ref' => 'foo']];
-        $this->expectException(\Throwable::class);
-        $actual = $this->hydrator->hydrate($spec, ['foo' => 'literal']);
+        $this->expectException(InvalidHydrateSpecException::class);
+        $actual = $this->hydrator->resolve($spec, ['foo' => 'literal']);
     }
 
     /**

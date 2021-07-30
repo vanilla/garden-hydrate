@@ -37,4 +37,11 @@ class TestStringResolver extends AbstractDataResolver {
 
         return $data;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getType(): string {
+        return 'str';
+    }
 }

@@ -7,6 +7,7 @@
 
 namespace Garden\Hydrate\Resolvers;
 
+use Garden\Hydrate\Schema\JsonSchemaGenerator;
 use Garden\Hydrate\ValidatableResolverInterface;
 use Garden\Schema\Schema;
 
@@ -48,4 +49,22 @@ abstract class AbstractDataResolver implements ValidatableResolverInterface {
      * @return mixed
      */
     abstract protected function resolveInternal(array $data, array $params);
+
+    /**
+     * @return Schema|null
+     */
+    public function getSchema(): ?Schema {
+        return $this->schema;
+    }
+
+    /**
+     * If a string is used that will be the key to group the resolver.
+     *
+     * Other items can allow properties to be only of a specific resolver group.
+     *
+     * @return string
+     */
+    public function getResolverGroup(): string {
+        return JsonSchemaGenerator::ROOT_GROUP;
+    }
 }

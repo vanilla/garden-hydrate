@@ -15,7 +15,10 @@ use Garden\Schema\Schema;
  * A resolver that can reference he entire data array.
  */
 final class RefResolver extends AbstractDataResolver {
+
     use ReferenceResolverTrait;
+
+    public const TYPE = "ref";
 
     /**
      * RefResolver constructor.
@@ -44,5 +47,12 @@ final class RefResolver extends AbstractDataResolver {
 
         $result = $this->resolveReference($ref, $data, $params[DataHydrator::KEY_ROOT] ?? [], $found);
         return $found ? $result : $default;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getType(): string {
+        return self::TYPE;
     }
 }

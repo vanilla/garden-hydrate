@@ -30,8 +30,8 @@ class DataHydratorTest extends TestCase {
         $this->hydrator = new DataHydrator();
         $this->hydrator
             ->setExceptionHandler(new TestExceptionHandler())
-            ->addResolver('exception', new ExceptionThrowerResolver())
-            ->addResolver('str', new TestStringResolver('a'));
+            ->addResolver(new ExceptionThrowerResolver())
+            ->addResolver(new TestStringResolver('a'));
     }
 
     /**

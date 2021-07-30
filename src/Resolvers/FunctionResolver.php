@@ -15,6 +15,9 @@ use ReflectionMethod;
  * A data resolver that will calls a function with named parameters.
  */
 class FunctionResolver extends AbstractDataResolver {
+
+    public const TYPE = "function";
+
     /**
      * @var callable The function that is invoked for the resolver.
      */
@@ -30,25 +33,30 @@ class FunctionResolver extends AbstractDataResolver {
      */
     private $variadic = '';
 
+    /** @var string */
+    private $resolverType;
+
     /**
      * ReflectedFunctionResolver constructor.
      *
      * @param callable $function The function that will resolve the data.
+     * @param string $resolverType A name to use as the resolver type. If left empty one will be generated.
      */
-    public function __construct(callable $function) {
+    public function __construct(callable $function, string $resolverType = null) {
         $this->function = $function;
-        [$this->schema, $this->paramNames, $this->variadic] = $this->reflectSchema($function);
+        $func = $this->createReflectionFunction($function);
+        $this->resolverType = $resolverType ?? $func->getName();
+        [$this->schema, $this->paramNames, $this->variadic] = $this->reflectSchema($func);
     }
 
     /**
      * Reflect a callable to get its parameters and parameter schema.
      *
-     * @param callable $callable
+     * @param \ReflectionFunctionAbstract $func
      * @return array Returns an array in the form `[$schema, $paramNames]`.
      * @psalm-suppress PossiblyNullReference
      */
-    private function reflectSchema(callable $callable): array {
-        $func = $this->createReflectionFunction($callable);
+    private function reflectSchema(\ReflectionFunctionAbstract $func): array {
         $paramNames = [];
         $variadic = '';
         $properties = [];
@@ -146,5 +154,12 @@ class FunctionResolver extends AbstractDataResolver {
 
         $result = call_user_func_array($this->function, $args);
         return $result;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getType(): string {
+        return $this->resolverType;
     }
 }

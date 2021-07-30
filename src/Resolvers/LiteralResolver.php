@@ -7,12 +7,17 @@
 
 namespace Garden\Hydrate\Resolvers;
 
+use Garden\Hydrate\DataHydrator;
+use Garden\Hydrate\Schema\JsonSchemaGenerator;
 use Garden\Schema\Schema;
 
 /**
  * A resolver that allows for a literal value.
  */
 class LiteralResolver extends AbstractDataResolver {
+
+    public const TYPE = "literal";
+
     /**
      * LiteralResolver constructor.
      */
@@ -20,9 +25,10 @@ class LiteralResolver extends AbstractDataResolver {
         $this->schema = new Schema([
             'type' => 'object',
             'properties' => [
-                'data' => [],
+                'data' => [
+                    'type' => JsonSchemaGenerator::ALL_SCHEMA_TYPES,
+                ],
             ],
-            'required' => ['data'],
         ]);
     }
 
@@ -34,6 +40,18 @@ class LiteralResolver extends AbstractDataResolver {
      * @return mixed
      */
     public function resolveInternal(array $data, array $params) {
-        return $data['data'];
+        if (isset($data['data'])) {
+            return $data['data'];
+        } else {
+            unset($data[DataHydrator::KEY_HYDRATE]);
+            return $data;
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getType(): string {
+        return self::TYPE;
     }
 }
