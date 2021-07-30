@@ -132,14 +132,17 @@ The `DataHydrator` class doesn't provide much functionality with its built-in re
 Let's take an example where we want to have an `lcase` resolver to lowercase strings. Garden Hydrate provides a nifty `FunctionResolver` helper class to help you map any callable to a resolver using reflection.
 
 ```php
-$hydrator = new \Garden\Hydrate\DataHydrator();
+use Garden\Hydrate\Resolvers\FunctionResolver;
+use \Garden\Hydrate\DataHydrator;
+
+$hydrator = new DataHydrator();
 $lcase = new FunctionResolver(function (string $string) {
   return strtolower($string);
 });
-$hydrator->addResolver('lcase', $lcase);
+$hydrator->addResolver($lcase);
 
 $r = $hydrator->resolve([
-  '@hyrdate' => 'lcase',
+  '@hydrate' => 'lcase',
   'string' => 'STOP YELLING'
 ]);
 // $r will be "stop yelling"
