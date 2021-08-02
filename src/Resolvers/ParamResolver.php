@@ -7,6 +7,8 @@
 
 namespace Garden\Hydrate\Resolvers;
 
+use Garden\Hydrate\Schema\HydrateableSchema;
+use Garden\Hydrate\Schema\JsonSchemaGenerator;
 use Garden\JSON\ReferenceResolverTrait;
 use Garden\Schema\Schema;
 
@@ -24,17 +26,29 @@ final class ParamResolver extends AbstractDataResolver {
      */
     public function __construct() {
         $this->schema = new Schema([
+            'description' => 'Params are data passed in during rendering. In order to ',
             'type' => 'object',
             'properties' => [
                 'ref' => [
                     'type' => 'string',
                 ],
                 'default' => [
-
+                    'type' => HydrateableSchema::ALL_SCHEMA_TYPES,
+                    'default' => null,
                 ],
             ],
             'required' => ['ref'],
         ]);
+    }
+
+
+    /**
+     * Set valid parameter names.
+     *
+     * @param string[] $paramNames
+     */
+    public function setParamNames(array $paramNames) {
+        $this->schema->setField('properties.ref.enum', $paramNames);
     }
 
     /**

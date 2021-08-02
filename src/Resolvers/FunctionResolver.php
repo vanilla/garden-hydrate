@@ -40,7 +40,7 @@ class FunctionResolver extends AbstractDataResolver {
      * ReflectedFunctionResolver constructor.
      *
      * @param callable $function The function that will resolve the data.
-     * @param string $resolverType A name to use as the resolver type. If left empty one will be generated.
+     * @param string|null $resolverType A name to use as the resolver type. If left empty one will be generated.
      */
     public function __construct(callable $function, string $resolverType = null) {
         $this->function = $function;

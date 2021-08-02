@@ -8,20 +8,33 @@
 namespace Garden\Hydrate\Tests;
 
 use Garden\Hydrate\DataHydrator;
-use Garden\Hydrate\Tests\Fixtures\TestStringResolver;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Tests for the schema generator.
+ */
 class JsonSchemaGeneratorTest extends TestCase {
 
-    public function testGenerateSchema() {
-        $out = __DIR__ . '/../Fixtures/schemaReference.json';
+    /**
+     * Since \Garden\Schema can't currently validate with oneOf (until version 2 or 3) we just do a snapshot test.
+     */
+    public function testCompareSnapshot() {
+        $testRoot = realpath(__DIR__ . '/..');
+        $cacheDir = $testRoot . '/Fixtures';
+        if (!file_exists($cacheDir)) {
+            mkdir($cacheDir, 0777, true);
+        }
+        $referencePath = $cacheDir . '/schemaReference.json';
         $hydrator = new DataHydrator();
-        $hydrator->addResolver(new TestStringResolver("testString"));
         $generator = $hydrator->getSchemaGenerator();
         $schema = $generator->getDefaultSchema();
-        $json = json_encode($schema, JSON_PRETTY_PRINT);
-        file_put_contents($out, $json);
-        $this->assertEquals(true, true);
+
+        $actual = json_encode($schema, JSON_PRETTY_PRINT);
+        // Uncomment this to generate a new file.
+//        file_put_contents($referencePath, $actual);
+
+        $expected = file_get_contents($referencePath);
+        $this->assertEquals($expected, $actual);
     }
 
 }

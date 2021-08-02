@@ -8,6 +8,7 @@
 namespace Garden\Hydrate\Resolvers;
 
 use Garden\Hydrate\DataHydrator;
+use Garden\Hydrate\Schema\HydrateableSchema;
 use Garden\Hydrate\Schema\JsonSchemaGenerator;
 use Garden\Schema\Schema;
 
@@ -23,10 +24,14 @@ class LiteralResolver extends AbstractDataResolver {
      */
     public function __construct() {
         $this->schema = new Schema([
+            'description' => 'A literal returns it\'s exact exact value.'
+                .'For objects you can add additional properties, but for other types you can set data to be that value.',
             'type' => 'object',
             'properties' => [
                 'data' => [
-                    'type' => JsonSchemaGenerator::ALL_SCHEMA_TYPES,
+                    'description' => 'A literal returns it\'s exact exact value.'
+                        .'For objects you can add additional properties, but for other types you can set data to be that value.',
+                    'type' => HydrateableSchema::ALL_SCHEMA_TYPES,
                 ],
             ],
         ]);

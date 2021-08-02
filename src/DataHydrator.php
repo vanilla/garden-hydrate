@@ -50,6 +50,9 @@ class DataHydrator {
      */
     private $resolver;
 
+    /** @var ParamResolver */
+    private $paramResolver;
+
     /**
      * DataHydrator constructor.
      */
@@ -57,15 +60,28 @@ class DataHydrator {
         $this->setExceptionHandler(new NullExceptionHandler());
 
         $this->addResolver(new LiteralResolver());
-        $this->addResolver(new ParamResolver());
+        $this->paramResolver = new ParamResolver();
+        $this->addResolver($this->paramResolver);
         $this->addResolver(new RefResolver());
         $this->addResolver(new SprintfResolver());
 
         $this->addMiddleware(new TransformMiddleware());
     }
 
+    /**
+     * @return ParamResolver
+     */
+    public function getParamResolver(): ParamResolver {
+        return $this->paramResolver;
+    }
+
+    /**
+     * Create a schema generator from all of our registered resolvers.
+     *
+     * @return JsonSchemaGenerator
+     */
     public function getSchemaGenerator(): JsonSchemaGenerator {
-        $generator = new JsonSchemaGenerator($this->resolvers, $this->middlewares);
+        $generator = new JsonSchemaGenerator($this->resolvers);
         return $generator;
     }
 
