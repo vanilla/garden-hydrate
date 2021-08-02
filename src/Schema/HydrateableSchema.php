@@ -17,6 +17,7 @@ use Garden\Schema\Schema;
 class HydrateableSchema extends Schema {
 
     public const X_NO_HYDRATE = 'x-no-hydrate';
+    public const X_HYDRATE_GROUP = 'x-hydrate-group';
 
     /** @var string[] All built-in schema types in JSON schema. */
     public const ALL_SCHEMA_TYPES = [
@@ -44,7 +45,7 @@ class HydrateableSchema extends Schema {
     ];
 
     /** @var string[] */
-    private $hydrateTypes;
+    private $hydrateTypesByGroup;
 
     /** @var string */
     private $ownHydrateType;
@@ -52,14 +53,17 @@ class HydrateableSchema extends Schema {
     /**
      * Constructor
      *
-     * @param array $schemaArray The schema array to use.
+     * @param Schema|array $schemaArray The schema array to use.
      * @param string $ownHydrateType The key of our own data resolver.
-     * @param array $hydrateTypes An array of all hydrate types. This is needed for recursive property typing.
+     * @param array $hydrateTypesByGroup A mapping of available hydrate types to their groups.
      *
      * @throws InvalidHydrateSpecException If the root type does not allow an object.
      */
-    public function __construct(array $schemaArray, string $ownHydrateType, array $hydrateTypes = []) {
-        $this->hydrateTypes = $hydrateTypes;
+    public function __construct($schemaArray, string $ownHydrateType, array $hydrateTypesByGroup = []) {
+        if ($schemaArray instanceof Schema) {
+            $schemaArray = $schemaArray->getSchemaArray();
+        }
+        $this->hydrateTypesByGroup = $hydrateTypesByGroup;
         $this->ownHydrateType = $ownHydrateType;
 
         if ($this->hasNonObjectSchemaType($schemaArray)) {
@@ -91,7 +95,7 @@ class HydrateableSchema extends Schema {
             // We already have a oneOf.
             // Modify the existing items
             $items = $schemaArray['oneOf'];
-            $items[] = JsonSchemaGenerator::REF_RESOLVER;
+            $items[] = JsonSchemaGenerator::ROOT_HYDRATE_REF;
 
             // Push into it.
             $schemaArray['oneOf'] = $items;
@@ -147,12 +151,13 @@ class HydrateableSchema extends Schema {
      */
     private function oneOfWithHydrate(array $schemaArray): array {
         // Clear the description, we're hoisting it.
+        $hydrateGroup = $schemaArray[self::X_HYDRATE_GROUP] ?? JsonSchemaGenerator::ROOT_HYDRATE_GROUP;
         $description = $schemaArray['description'] ?? null;
         unset($schemaArray['description']);
         $schemaArray = [
             'oneOf' => [
                 $schemaArray,
-                JsonSchemaGenerator::REF_RESOLVER,
+                JsonSchemaGenerator::ROOT_HYDRATE_REF,
             ]
         ];
         // Put back the description if there was one.
@@ -163,17 +168,21 @@ class HydrateableSchema extends Schema {
         // Add a discriminator field for autocomplete.
         foreach ($schemaArray['oneOf'] as $of) {
             $ofRef = $of['$ref'] ?? null;
-            if ($ofRef === JsonSchemaGenerator::REF_RESOLVER['$ref']) {
+            if ($ofRef === JsonSchemaGenerator::ROOT_HYDRATE_REF['$ref']) {
                 break;
             }
         }
         // Currently this CANNOT be a reference.
         // Most autocompleting tools require this level of verbosity to not fall apart.
+        $hydrateValue = [
+            'type' => 'string',
+        ];
+        $hydrateEnum = $this->hydrateTypesByGroup[$hydrateGroup] ?? null;
+        if ($hydrateEnum !== null) {
+            $hydrateValue['enum'] = $hydrateEnum;
+        }
         $schemaArray['properties'] = [
-            DataHydrator::KEY_HYDRATE => [
-                'type' => 'string',
-                'enum' => $this->hydrateTypes,
-            ]
+            DataHydrator::KEY_HYDRATE => $hydrateValue
         ];
 
         return $schemaArray;

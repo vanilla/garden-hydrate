@@ -9,6 +9,9 @@ namespace Garden\Hydrate\Tests;
 
 use Garden\Hydrate\DataHydrator;
 use Garden\Hydrate\Resolvers\FunctionResolver;
+use Garden\Hydrate\Schema\JsonSchemaGenerator;
+use Garden\Hydrate\Tests\Fixtures\TestStringResolver;
+use Garden\Hydrate\Tests\Fixtures\TestTypeGroupResolver;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -41,4 +44,28 @@ class JsonSchemaGeneratorTest extends TestCase {
         $this->assertEquals($expected, $actual);
     }
 
+    /**
+     * Test that hydrators are put in the correct groups.
+     */
+    public function testHydrateGroups() {
+        $hydrator = new DataHydrator();
+        $hydrator->addResolver(new TestTypeGroupResolver('rootHydrate'));
+        $hydrator->addResolver(new TestTypeGroupResolver('customHydrate1', 'custom1'));
+        $hydrator->addResolver(new TestTypeGroupResolver('customHydrate2', 'custom2'));
+
+        $schemaGenerator = $hydrator->getSchemaGenerator();
+        $this->assertSame([
+            JsonSchemaGenerator::ROOT_HYDRATE_GROUP => [
+                'literal',
+                'param',
+                'ref',
+                'sprintf',
+                'rootHydrate',
+                'customHydrate1',
+                'customHydrate2',
+            ],
+            'custom1' => ['customHydrate1'],
+            'custom2' => ['customHydrate2'],
+        ], $schemaGenerator->getTypesByGroup());
+    }
 }

@@ -7,8 +7,10 @@
 
 namespace Garden\Hydrate\Tests;
 
+use Garden\Hydrate\DataHydrator;
 use Garden\Hydrate\Exception\InvalidHydrateSpecException;
 use Garden\Hydrate\Schema\HydrateableSchema;
+use Garden\Hydrate\Schema\JsonSchemaGenerator;
 use Garden\Schema\Schema;
 use PHPUnit\Framework\TestCase;
 
@@ -41,7 +43,7 @@ class HydrateableSchemaTest extends TestCase {
                     'properties' => [
                         '$hydrate' => [
                             'type' => 'string',
-                            'enum' => [],
+                            // No enum here because we didn't give a type/group mapping.
                         ],
                     ],
                 ],
@@ -147,5 +149,33 @@ class HydrateableSchemaTest extends TestCase {
         ];
         $hydrateable = (new HydrateableSchema($in, 'myType'))->getSchemaArray();
         $this->assertEquals($hydrateable['properties']['foo'], $in['properties']['foo']);
+    }
+
+    /**
+     * Test that hydrate groups can be limited to certain ones.
+     */
+    public function testHydrateGroups() {
+        $groups = [
+            JsonSchemaGenerator::ROOT_HYDRATE_GROUP => ['one', 'two', 'three'],
+            'subgroup' => ['one', 'two'],
+        ];
+        $hydrateable = (new HydrateableSchema(Schema::parse([
+            'any' => [
+                'type' => 'string',
+            ],
+            'limited' => [
+                'type' => 'string',
+                HydrateableSchema::X_HYDRATE_GROUP => 'subgroup',
+            ],
+        ]), 'inType', $groups))->getSchemaArray();
+
+        $this->assertSame(
+            $groups[JsonSchemaGenerator::ROOT_HYDRATE_GROUP],
+            $hydrateable['properties']['any']['properties'][DataHydrator::KEY_HYDRATE]['enum']
+        );
+        $this->assertSame(
+            $groups['subgroup'],
+            $hydrateable['properties']['limited']['properties'][DataHydrator::KEY_HYDRATE]['enum']
+        );
     }
 }

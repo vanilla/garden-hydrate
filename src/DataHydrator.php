@@ -357,6 +357,12 @@ class DataHydrator {
         };
     }
 
+    /**
+     * Get the name of a callable.
+     *
+     * @param callable $callable
+     * @return string
+     */
     public static function getCallableName(callable $callable): string {
         if (is_string($callable)) {
             return trim($callable);

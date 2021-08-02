@@ -19,11 +19,11 @@ class JsonSchemaGenerator {
     public const SCHEMA_DRAFT_7_URL = "http://json-schema.org/draft-07/schema";
 
     /** @var string The definition key used for the combined resolver types. */
-    public const DEF_KEY_RESOLVER = 'resolver';
+    public const ROOT_HYDRATE_GROUP = 'resolver';
 
     /** @var string[] A reference to all resolver types. */
-    public const REF_RESOLVER = [
-        '$ref' => '#/$defs/' . self::DEF_KEY_RESOLVER
+    public const ROOT_HYDRATE_REF = [
+        '$ref' => '#/$defs/' . self::ROOT_HYDRATE_GROUP
     ];
 
     /** @var AbstractDataResolver[] */
@@ -49,7 +49,7 @@ class JsonSchemaGenerator {
      * @var array[]
      */
     private $typesByGroup = [
-        'resolver' => [],
+        self::ROOT_HYDRATE_GROUP => [],
     ];
 
     /**
@@ -61,6 +61,12 @@ class JsonSchemaGenerator {
         $this->resolvers = $resolvers;
 
         // We need to know all the types before we build our references.
+        foreach ($this->resolvers as $resolver) {
+            $type = $resolver->getType();
+            $group = $resolver->getHydrateGroup();
+            $this->pushTypeAndGroup($type, $group);
+            $this->pushTypeAndGroup($type, self::ROOT_HYDRATE_GROUP);
+        }
         $this->allTypes = array_map(function (AbstractDataResolver $resolver) {
             return $resolver->getType();
         }, array_values($resolvers));
@@ -72,12 +78,19 @@ class JsonSchemaGenerator {
     }
 
     /**
+     * @return array[]
+     */
+    public function getTypesByGroup(): array {
+        return $this->typesByGroup;
+    }
+
+    /**
      * Get a schema with all resolver definitions and with allowing any structure of resolvers.
      *
      * @return Schema
      */
     public function getDefaultSchema(): Schema {
-        $schema = new Schema(self::REF_RESOLVER);
+        $schema = new Schema(self::ROOT_HYDRATE_REF);
         $schema->setField('$schema', self::SCHEMA_DRAFT_7_URL);
         $schema->setField('$defs', $this->createCombinedDefsArray());
         return $schema;
@@ -133,12 +146,10 @@ class JsonSchemaGenerator {
     private function applyResolverAsReference(AbstractDataResolver $resolver) {
         $type = $resolver->getType();
         $schema = $resolver->getSchema();
-        $group = $resolver->getResolverGroup();
         $schemaArray = $schema ? $schema->getSchemaArray() : HydrateableSchema::ANY_OBJECT_SCHEMA_ARRAY;
-        $hydrateableSchema = new HydrateableSchema($schemaArray, $type, $this->allTypes);
+        $hydrateableSchema = new HydrateableSchema($schemaArray, $type, $this->typesByGroup);
         $this->referencesByType[$type] = $hydrateableSchema->getSchemaArray();
-        $this->pushTypeAndGroup($type, $group);
-        $this->pushTypeAndGroup($type, self::DEF_KEY_RESOLVER);
+
     }
 
     /**

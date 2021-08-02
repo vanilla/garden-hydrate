@@ -64,7 +64,7 @@ abstract class AbstractDataResolver implements ValidatableResolverInterface {
      *
      * @return string
      */
-    public function getResolverGroup(): string {
-        return JsonSchemaGenerator::DEF_KEY_RESOLVER;
+    public function getHydrateGroup(): string {
+        return JsonSchemaGenerator::ROOT_HYDRATE_GROUP;
     }
 }
