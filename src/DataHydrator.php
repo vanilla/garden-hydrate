@@ -53,13 +53,17 @@ class DataHydrator {
     /** @var ParamResolver */
     private $paramResolver;
 
+    /** @var LiteralResolver */
+    private $literalResolver;
+
     /**
      * DataHydrator constructor.
      */
     public function __construct() {
         $this->setExceptionHandler(new NullExceptionHandler());
 
-        $this->addResolver(new LiteralResolver());
+        $this->literalResolver = new LiteralResolver();
+        $this->addResolver($this->literalResolver);
         $this->paramResolver = new ParamResolver();
         $this->addResolver($this->paramResolver);
         $this->addResolver(new RefResolver());
@@ -242,7 +246,8 @@ class DataHydrator {
                 }
             }
             // Handle the special case for a literal value.
-            if (isset($data[self::KEY_HYDRATE]) && $data[self::KEY_HYDRATE] === 'literal' && isset($data['data'])) {
+            if (isset($data[self::KEY_HYDRATE]) && $data[self::KEY_HYDRATE] === LiteralResolver::TYPE) {
+                $result['data'] = $this->literalResolver->resolve($data);
                 $result['data'] = $data['data'];
                 unset($recurse['data']);
             }

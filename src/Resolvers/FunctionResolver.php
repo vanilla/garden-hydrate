@@ -62,6 +62,10 @@ class FunctionResolver extends AbstractDataResolver {
         $properties = [];
         $required = [];
 
+        $funcName = $func->getName();
+        if ($func instanceof ReflectionMethod) {
+            $funcName = $func->getDeclaringClass()->getName() . '::' . $funcName;
+        }
         foreach ($func->getParameters() as $param) {
             if ($param->isVariadic()) {
                 $variadic = $param->getName();
@@ -107,9 +111,11 @@ class FunctionResolver extends AbstractDataResolver {
 
             $properties[$param->getName()] = $schema;
         }
+        $propertiesName = implode(", ", array_keys($properties));
 
         $schema = Schema::parse([
             'type' => 'object',
+            'description' => "Call the function `$funcName($propertiesName)`",
             'properties' => $properties,
             'required' => $required,
         ]);

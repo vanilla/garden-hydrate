@@ -22,9 +22,16 @@ class SprintfResolver extends AbstractDataResolver {
     public function __construct() {
         $this->schema = new Schema([
             'type' => 'object',
+            'description' => 'Call sprintf($format, $args).',
             'properties' => [
-                'format' => ['type' => 'string'],
-                'args' => ['type' => 'array'],
+                'format' => [
+                    'description' => 'The format string.',
+                    'type' => 'string',
+                ],
+                'args' => [
+                    'description' => 'Arguments to interpolate into the format string.',
+                    'type' => 'array',
+                ],
             ],
             'required' => ['format'],
         ]);

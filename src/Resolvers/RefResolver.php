@@ -8,11 +8,12 @@
 namespace Garden\Hydrate\Resolvers;
 
 use Garden\Hydrate\DataHydrator;
+use Garden\Hydrate\Schema\HydrateableSchema;
 use Garden\JSON\ReferenceResolverTrait;
 use Garden\Schema\Schema;
 
 /**
- * A resolver that can reference he entire data array.
+ * A resolver that can reference the entire data array.
  */
 final class RefResolver extends AbstractDataResolver {
 
@@ -26,13 +27,18 @@ final class RefResolver extends AbstractDataResolver {
     public function __construct() {
         $this->schema = new Schema([
             'type' => 'object',
+            'description' => 'Reference data from other parts of the hydration by it\'s path.',
             'properties' => [
                 'ref' => [
+                    'description' => 'A local reference within the document. For example: "/path/to/property/from/root".',
                     'type' => 'string',
+                    HydrateableSchema::X_NO_HYDRATE => true,
                 ],
                 'default' => [
-
-                ],
+                    'description' => 'Default value if the ref could not be resolved. Defaults to null.',
+                    'type' => HydrateableSchema::ALL_SCHEMA_TYPES,
+                    'default' => null,
+                ]
             ],
             'required' => ['ref'],
         ]);

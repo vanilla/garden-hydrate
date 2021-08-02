@@ -26,13 +26,16 @@ final class ParamResolver extends AbstractDataResolver {
      */
     public function __construct() {
         $this->schema = new Schema([
-            'description' => 'Params are data passed in during rendering. In order to ',
+            'description' => 'Params are data passed in during hydration.',
             'type' => 'object',
             'properties' => [
                 'ref' => [
+                    'description' => 'The parameter name.',
                     'type' => 'string',
+                    HydrateableSchema::X_NO_HYDRATE => true,
                 ],
                 'default' => [
+                    'description' => 'A default value for the parameter value. Defaults to null.',
                     'type' => HydrateableSchema::ALL_SCHEMA_TYPES,
                     'default' => null,
                 ],

@@ -24,16 +24,16 @@ class LiteralResolver extends AbstractDataResolver {
      */
     public function __construct() {
         $this->schema = new Schema([
-            'description' => 'A literal returns it\'s exact exact value.'
-                .'For objects you can add additional properties, but for other types you can set data to be that value.',
+            'description' => 'A literal returns it\'s exact data value before any other processing.',
             'type' => 'object',
             'properties' => [
                 'data' => [
-                    'description' => 'A literal returns it\'s exact exact value.'
-                        .'For objects you can add additional properties, but for other types you can set data to be that value.',
+                    HydrateableSchema::X_NO_HYDRATE => true,
+                    'description' => 'The value of the literal',
                     'type' => HydrateableSchema::ALL_SCHEMA_TYPES,
                 ],
             ],
+            'required' => ['data'],
         ]);
     }
 
@@ -45,12 +45,7 @@ class LiteralResolver extends AbstractDataResolver {
      * @return mixed
      */
     public function resolveInternal(array $data, array $params) {
-        if (isset($data['data'])) {
-            return $data['data'];
-        } else {
-            unset($data[DataHydrator::KEY_HYDRATE]);
-            return $data;
-        }
+        return $data['data'];
     }
 
     /**

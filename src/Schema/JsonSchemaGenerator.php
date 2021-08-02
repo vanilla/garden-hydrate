@@ -99,7 +99,8 @@ class JsonSchemaGenerator {
                         'type' => 'string',
                         'enum' => $this->allTypes,
                     ]
-                ]
+                ],
+                'required' => [DataHydrator::KEY_HYDRATE]
             ];
         }
 

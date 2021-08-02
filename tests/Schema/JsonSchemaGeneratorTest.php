@@ -8,6 +8,7 @@
 namespace Garden\Hydrate\Tests;
 
 use Garden\Hydrate\DataHydrator;
+use Garden\Hydrate\Resolvers\FunctionResolver;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -26,12 +27,15 @@ class JsonSchemaGeneratorTest extends TestCase {
         }
         $referencePath = $cacheDir . '/schemaReference.json';
         $hydrator = new DataHydrator();
+        $hydrator->addResolver(
+            new FunctionResolver([TestCase::class, 'assertEquals'])
+        );
         $generator = $hydrator->getSchemaGenerator();
         $schema = $generator->getDefaultSchema();
 
         $actual = json_encode($schema, JSON_PRETTY_PRINT);
         // Uncomment this to generate a new file.
-//        file_put_contents($referencePath, $actual);
+        // file_put_contents($referencePath, $actual);
 
         $expected = file_get_contents($referencePath);
         $this->assertEquals($expected, $actual);

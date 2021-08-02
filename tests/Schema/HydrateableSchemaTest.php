@@ -7,12 +7,19 @@
 
 namespace Garden\Hydrate\Tests;
 
+use Garden\Hydrate\Exception\InvalidHydrateSpecException;
 use Garden\Hydrate\Schema\HydrateableSchema;
 use Garden\Schema\Schema;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Tests for the hydrateable schema modifications.
+ */
 class HydrateableSchemaTest extends TestCase {
 
+    /**
+     * Test addition of the hydrate property and unions to sub-properties.
+     */
     public function testConvertObject() {
         $in = Schema::parse([
             'foo:s?',
@@ -37,9 +44,6 @@ class HydrateableSchemaTest extends TestCase {
                             'enum' => [],
                         ],
                     ],
-                    'required' => [
-                        '$hydrate',
-                    ],
                 ],
                 '$hydrate' => [
                     'type' => 'string',
@@ -55,38 +59,21 @@ class HydrateableSchemaTest extends TestCase {
         $this->assertSame($expected, $hydrateable->getSchemaArray());
     }
 
-    public function testPrimitiveType() {
-        $in = Schema::parse([
+    /**
+     * Root level primitive types are not allowed (because all root types need to have a $hydrate parameter.
+     */
+    public function testPrimitiveTypeException() {
+        $in = [
             'type' => ['number', 'string', 'null'],
             'minLength' => 20,
-        ])->getSchemaArray();
-
-        $expected = [
-            'oneOf' => [
-                [
-                    'type' => ['number', 'string', 'null'],
-                    'minLength' => 20,
-                ],
-                [
-                    '$ref' => '#/$defs/resolver',
-                ],
-            ],
-            'properties' => [
-                '$hydrate' => [
-                    'type' => 'string',
-                    'enum' => [
-                        'primitive',
-                    ],
-                ],
-            ],
-            'required' => [
-                '$hydrate',
-            ],
         ];
+        $this->expectException(InvalidHydrateSpecException::class);
         $hydrateable = new HydrateableSchema($in, 'primitive');
-        $this->assertSame($expected, $hydrateable->getSchemaArray());
     }
 
+    /**
+     * Test mixing of hydrate into an existing oneOf.
+     */
     public function testExistingOneOf() {
         $in = [
             'oneOf' => [
@@ -125,5 +112,40 @@ class HydrateableSchemaTest extends TestCase {
         ];
         $hydrateable = new HydrateableSchema($in, 'primitive');
         $this->assertSame($expected, $hydrateable->getSchemaArray());
+    }
+
+    /**
+     * Test that required properties are preserved and that $hydrate becomes a required property.
+     */
+    public function testHydrateRequirement() {
+        $in = [
+            'type' => 'object',
+            'properties' => [
+                'foo' => [
+                    'type' => 'string',
+                ],
+            ],
+            'required' => ['foo'],
+        ];
+        $hydrateable = (new HydrateableSchema($in, 'myType'))->getSchemaArray();
+        $this->assertEquals(['foo', '$hydrate'], $hydrateable['required']);
+    }
+
+    /**
+     * Test that fields can opt-out of being hydrated.
+     */
+    public function testNoHydrate() {
+        $in = [
+            'type' => 'object',
+            'properties' => [
+                'foo' => [
+                    HydrateableSchema::X_NO_HYDRATE => true,
+                    'type' => 'string',
+                ],
+            ],
+            'required' => ['foo'],
+        ];
+        $hydrateable = (new HydrateableSchema($in, 'myType'))->getSchemaArray();
+        $this->assertEquals($hydrateable['properties']['foo'], $in['properties']['foo']);
     }
 }
