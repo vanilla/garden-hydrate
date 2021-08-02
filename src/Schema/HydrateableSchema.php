@@ -53,15 +53,17 @@ class HydrateableSchema extends Schema {
     /**
      * Constructor
      *
-     * @param Schema|array $schemaArray The schema array to use.
+     * @param Schema|array $schemaOrArray The schema array to use.
      * @param string $ownHydrateType The key of our own data resolver.
      * @param array $hydrateTypesByGroup A mapping of available hydrate types to their groups.
      *
      * @throws InvalidHydrateSpecException If the root type does not allow an object.
      */
-    public function __construct($schemaArray, string $ownHydrateType, array $hydrateTypesByGroup = []) {
-        if ($schemaArray instanceof Schema) {
-            $schemaArray = $schemaArray->getSchemaArray();
+    public function __construct($schemaOrArray, string $ownHydrateType, array $hydrateTypesByGroup = []) {
+        if ($schemaOrArray instanceof Schema) {
+            $schemaArray = $schemaOrArray->getSchemaArray();
+        } else {
+            $schemaArray = $schemaOrArray;
         }
         $this->hydrateTypesByGroup = $hydrateTypesByGroup;
         $this->ownHydrateType = $ownHydrateType;

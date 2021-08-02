@@ -54,4 +54,11 @@ class MiddlewareWrapper implements DataResolverInterface {
         $r = $this->middleware->process($data, $allParams, $this->resolver);
         return $r;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getType(): string {
+        return 'middlewareWrapper';
+    }
 }

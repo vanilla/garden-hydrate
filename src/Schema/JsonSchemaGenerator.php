@@ -151,7 +151,6 @@ class JsonSchemaGenerator {
         $schemaArray = $schema ? $schema->getSchemaArray() : HydrateableSchema::ANY_OBJECT_SCHEMA_ARRAY;
         $hydrateableSchema = new HydrateableSchema($schemaArray, $type, $this->typesByGroup);
         $this->referencesByType[$type] = $hydrateableSchema->getSchemaArray();
-
     }
 
     /**

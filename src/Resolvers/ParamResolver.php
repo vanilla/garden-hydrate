@@ -51,7 +51,9 @@ final class ParamResolver extends AbstractDataResolver {
      * @param string[] $paramNames
      */
     public function setParamNames(array $paramNames) {
-        $this->schema->setField('properties.ref.enum', $paramNames);
+        if ($this->schema !== null) {
+            $this->schema->setField('properties.ref.enum', $paramNames);
+        }
     }
 
     /**
