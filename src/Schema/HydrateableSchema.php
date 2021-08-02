@@ -53,18 +53,13 @@ class HydrateableSchema extends Schema {
     /**
      * Constructor
      *
-     * @param Schema|array $schemaOrArray The schema array to use.
+     * @param array $schemaArray The schema array to use.
      * @param string $ownHydrateType The key of our own data resolver.
      * @param array $hydrateTypesByGroup A mapping of available hydrate types to their groups.
      *
      * @throws InvalidHydrateSpecException If the root type does not allow an object.
      */
-    public function __construct($schemaOrArray, string $ownHydrateType, array $hydrateTypesByGroup = []) {
-        if ($schemaOrArray instanceof Schema) {
-            $schemaArray = $schemaOrArray->getSchemaArray();
-        } else {
-            $schemaArray = $schemaOrArray;
-        }
+    public function __construct(array $schemaArray, string $ownHydrateType, array $hydrateTypesByGroup = []) {
         $this->hydrateTypesByGroup = $hydrateTypesByGroup;
         $this->ownHydrateType = $ownHydrateType;
 
@@ -83,6 +78,24 @@ class HydrateableSchema extends Schema {
         $schemaArray = $this->allowHydrateInSchema($schemaArray);
         $this->markHydrateRequired($schemaArray);
         parent::__construct($schemaArray);
+    }
+
+    /**
+     * Parsing factory.
+     *
+     * @param array $arr The schema array to use.
+     * @param string $ownHydrateType The key of our own data resolver.
+     * @param array $hydrateTypesByGroup A mapping of available hydrate types to their groups.
+     *
+     * @return static Return a new schema.
+     *
+     * @throws InvalidHydrateSpecException If the root type does not allow an object.
+     */
+    public static function parse(array $arr, ...$args) {
+        // We can't use parse directly because $schema is private and we can't modify it in a subclass after being instantiated.
+        $parsed = Schema::parse($arr);
+        $hydrateable = new HydrateableSchema($parsed->getSchemaArray(), ...$args);
+        return $hydrateable;
     }
 
     /**

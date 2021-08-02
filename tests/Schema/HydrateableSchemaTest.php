@@ -23,10 +23,9 @@ class HydrateableSchemaTest extends TestCase {
      * Test addition of the hydrate property and unions to sub-properties.
      */
     public function testConvertObject() {
-        $in = Schema::parse([
+        $hydrateable = HydrateableSchema::parse([
             'foo:s?',
-        ])->getSchemaArray();
-        $hydrateable = new HydrateableSchema($in, 'withFoo');
+        ], 'withFoo')->getSchemaArray();
 
         $expected = [
             'type' => 'object',
@@ -58,7 +57,7 @@ class HydrateableSchemaTest extends TestCase {
                 '$hydrate',
             ],
         ];
-        $this->assertSame($expected, $hydrateable->getSchemaArray());
+        $this->assertSame($expected, $hydrateable);
     }
 
     /**
@@ -129,7 +128,7 @@ class HydrateableSchemaTest extends TestCase {
             ],
             'required' => ['foo'],
         ];
-        $hydrateable = (new HydrateableSchema($in, 'myType'))->getSchemaArray();
+        $hydrateable = HydrateableSchema::parse($in, 'myType')->getSchemaArray();
         $this->assertEquals(['foo', '$hydrate'], $hydrateable['required']);
     }
 
@@ -147,7 +146,7 @@ class HydrateableSchemaTest extends TestCase {
             ],
             'required' => ['foo'],
         ];
-        $hydrateable = (new HydrateableSchema($in, 'myType'))->getSchemaArray();
+        $hydrateable = HydrateableSchema::parse($in, 'myType')->getSchemaArray();
         $this->assertEquals($hydrateable['properties']['foo'], $in['properties']['foo']);
     }
 
@@ -159,7 +158,7 @@ class HydrateableSchemaTest extends TestCase {
             JsonSchemaGenerator::ROOT_HYDRATE_GROUP => ['one', 'two', 'three'],
             'subgroup' => ['one', 'two'],
         ];
-        $hydrateable = (new HydrateableSchema(Schema::parse([
+        $hydrateable = HydrateableSchema::parse([
             'any' => [
                 'type' => 'string',
             ],
@@ -167,7 +166,7 @@ class HydrateableSchemaTest extends TestCase {
                 'type' => 'string',
                 HydrateableSchema::X_HYDRATE_GROUP => 'subgroup',
             ],
-        ]), 'inType', $groups))->getSchemaArray();
+        ], 'inType', $groups)->getSchemaArray();
 
         $this->assertSame(
             $groups[JsonSchemaGenerator::ROOT_HYDRATE_GROUP],
