@@ -81,15 +81,9 @@ class HydrateableSchema extends Schema {
     }
 
     /**
-     * Parsing factory.
+     * @inheritdoc
      *
-     * @param array $arr The schema array to use.
-     * @param string $ownHydrateType The key of our own data resolver.
-     * @param array $hydrateTypesByGroup A mapping of available hydrate types to their groups.
-     *
-     * @return static Return a new schema.
-     *
-     * @throws InvalidHydrateSpecException If the root type does not allow an object.
+     * @psalm-suppress LessSpecificReturnStatement
      */
     public static function parse(array $arr, ...$args) {
         // We can't use parse directly because $schema is private and we can't modify it in a subclass after being instantiated.
@@ -227,9 +221,9 @@ class HydrateableSchema extends Schema {
     /**
      * Push into or create a 'required' property on the given array.
      *
-     * @param array|Schema $someArray The array to mark a required property on.
+     * @param array $someArray The array to mark a required property on.
      */
-    private function markHydrateRequired(&$someArray) {
+    private function markHydrateRequired(array &$someArray) {
         $someArray['required'] = array_unique(array_merge(
             $someArray['required'] ?? [],
             [DataHydrator::KEY_HYDRATE]

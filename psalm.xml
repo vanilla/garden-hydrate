@@ -43,6 +43,7 @@
         <MissingParamType errorLevel="info" />
 
         <RedundantCondition errorLevel="info" />
+        <MoreSpecificReturnType errorLevel="info" />
 
         <DocblockTypeContradiction errorLevel="info" />
         <RedundantConditionGivenDocblockType errorLevel="info" />
