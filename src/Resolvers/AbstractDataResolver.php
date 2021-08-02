@@ -7,7 +7,6 @@
 
 namespace Garden\Hydrate\Resolvers;
 
-use Garden\Hydrate\Schema\JsonSchemaGenerator;
 use Garden\Hydrate\ValidatableResolverInterface;
 use Garden\Schema\Schema;
 
@@ -58,13 +57,12 @@ abstract class AbstractDataResolver implements ValidatableResolverInterface {
     }
 
     /**
-     * If a string is used that will be the key to group the resolver.
+     * Define groups that the hydrator belongs to.
+     * Hydrators will always belong to the root hydrate group in addition to ones defined here.
      *
-     * Other items can allow properties to be only of a specific resolver group.
-     *
-     * @return string
+     * @return array
      */
-    public function getHydrateGroup(): string {
-        return JsonSchemaGenerator::ROOT_HYDRATE_GROUP;
+    public function getHydrateGroups(): array {
+        return [];
     }
 }

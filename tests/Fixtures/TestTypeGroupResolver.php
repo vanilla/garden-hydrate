@@ -18,18 +18,18 @@ class TestTypeGroupResolver extends AbstractDataResolver {
      */
     private $type;
 
-    /** @var string|null */
-    private $hydrateGroup;
+    /** @var string[]|null */
+    private $hydrateGroups;
 
     /**
      * TestStringResolver constructor.
      *
      * @param string $type
-     * @param string|null $hydrateGroup
+     * @param string[]|null $hydrateGroups
      */
-    public function __construct(string $type, string $hydrateGroup = null) {
+    public function __construct(string $type, array $hydrateGroups = null) {
         $this->type = $type;
-        $this->hydrateGroup = $hydrateGroup;
+        $this->hydrateGroups = $hydrateGroups;
     }
 
     /**
@@ -47,13 +47,13 @@ class TestTypeGroupResolver extends AbstractDataResolver {
     }
 
     /**
-     * @return string
+     * @return array
      */
-    public function getHydrateGroup(): string {
-        if ($this->hydrateGroup === null) {
-            return parent::getHydrateGroup();
+    public function getHydrateGroups(): array {
+        if ($this->hydrateGroups === null) {
+            return parent::getHydrateGroups();
         } else {
-            return $this->hydrateGroup;
+            return $this->hydrateGroups;
         }
     }
 }

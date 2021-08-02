@@ -63,8 +63,10 @@ class JsonSchemaGenerator {
         // We need to know all the types before we build our references.
         foreach ($this->resolvers as $resolver) {
             $type = $resolver->getType();
-            $group = $resolver->getHydrateGroup();
-            $this->pushTypeAndGroup($type, $group);
+            $groups = $resolver->getHydrateGroups();
+            foreach ($groups as $group) {
+                $this->pushTypeAndGroup($type, $group);
+            }
             $this->pushTypeAndGroup($type, self::ROOT_HYDRATE_GROUP);
         }
         $this->allTypes = array_map(function (AbstractDataResolver $resolver) {

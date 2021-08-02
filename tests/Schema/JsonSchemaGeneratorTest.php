@@ -50,8 +50,8 @@ class JsonSchemaGeneratorTest extends TestCase {
     public function testHydrateGroups() {
         $hydrator = new DataHydrator();
         $hydrator->addResolver(new TestTypeGroupResolver('rootHydrate'));
-        $hydrator->addResolver(new TestTypeGroupResolver('customHydrate1', 'custom1'));
-        $hydrator->addResolver(new TestTypeGroupResolver('customHydrate2', 'custom2'));
+        $hydrator->addResolver(new TestTypeGroupResolver('customHydrate1', ['custom1']));
+        $hydrator->addResolver(new TestTypeGroupResolver('customHydrate1And2', ['custom1', 'custom2']));
 
         $schemaGenerator = $hydrator->getSchemaGenerator();
         $this->assertSame([
@@ -62,10 +62,10 @@ class JsonSchemaGeneratorTest extends TestCase {
                 'sprintf',
                 'rootHydrate',
                 'customHydrate1',
-                'customHydrate2',
+                'customHydrate1And2',
             ],
-            'custom1' => ['customHydrate1'],
-            'custom2' => ['customHydrate2'],
+            'custom1' => ['customHydrate1', 'customHydrate1And2'],
+            'custom2' => ['customHydrate1And2'],
         ], $schemaGenerator->getTypesByGroup());
     }
 }
