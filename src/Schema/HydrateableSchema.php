@@ -81,8 +81,9 @@ class HydrateableSchema extends Schema {
     }
 
     /**
-     * @inheritdoc
+     * Parse a short schema and return the associated schema.
      *
+     * @inheritdoc
      * @psalm-suppress LessSpecificReturnStatement
      */
     public static function parse(array $arr, ...$args) {

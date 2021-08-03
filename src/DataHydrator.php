@@ -214,10 +214,10 @@ class DataHydrator {
      * Get a resolver from the registered resolvers.
      *
      * @param string $type
-     * @return DataResolverInterface
+     * @return AbstractDataResolver
      * @throws ResolverNotFoundException Throws an exception if the resolver isn't registered.
      */
-    private function getResolver(string $type): DataResolverInterface {
+    private function getResolver(string $type): AbstractDataResolver {
         if (!$this->hasResolver($type)) {
             throw new ResolverNotFoundException("Resolver not registered: $type");
         }
