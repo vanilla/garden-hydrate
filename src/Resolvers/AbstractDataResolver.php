@@ -48,4 +48,24 @@ abstract class AbstractDataResolver implements ValidatableResolverInterface {
      * @return mixed
      */
     abstract protected function resolveInternal(array $data, array $params);
+
+    /**
+     * @return Schema|null
+     */
+    public function getSchema(): ?Schema {
+        return $this->schema;
+    }
+
+    /**
+     * Define groups that the hydrator belongs to.
+     * Hydrators will always belong to the root hydrate group in addition to ones defined here.
+     *
+     * This is meant to be used alongside the x-hydrate-group schema parameter when creating HydrateableSchema.
+     * Only resolvers that return that given type would be allowed on that particular property (as opposed to any resolver at all).
+     *
+     * @return string[]
+     */
+    public function getHydrateGroups(): array {
+        return [];
+    }
 }

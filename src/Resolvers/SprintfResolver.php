@@ -13,15 +13,25 @@ use Garden\Schema\Schema;
  * A data resolver that calls `sprintf()`.
  */
 class SprintfResolver extends AbstractDataResolver {
+
+    public const TYPE = "sprintf";
+
     /**
      * SprintfResolver constructor.
      */
     public function __construct() {
         $this->schema = new Schema([
             'type' => 'object',
+            'description' => 'Call sprintf($format, $args).',
             'properties' => [
-                'format' => ['type' => 'string'],
-                'args' => ['type' => 'array'],
+                'format' => [
+                    'description' => 'The format string.',
+                    'type' => 'string',
+                ],
+                'args' => [
+                    'description' => 'Arguments to interpolate into the format string.',
+                    'type' => 'array',
+                ],
             ],
             'required' => ['format'],
         ]);
@@ -34,5 +44,12 @@ class SprintfResolver extends AbstractDataResolver {
         $args = $data['args'] ?? [];
         $result = sprintf($data['format'], ...$args);
         return $result;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getType(): string {
+        return self::TYPE;
     }
 }

@@ -21,4 +21,11 @@ interface DataResolverInterface {
      * @return mixed The resolver can return whatever it wants.
      */
     public function resolve(array $data, array $params = []);
+
+    /**
+     * Get the type of the resolver.
+     *
+     * @return string
+     */
+    public function getType(): string;
 }

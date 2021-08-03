@@ -1,0 +1,406 @@
+{
+    "$ref": "#\/$defs\/resolver",
+    "$schema": "http:\/\/json-schema.org\/draft-07\/schema",
+    "$defs": {
+        "resolver": {
+            "oneOf": [
+                {
+                    "$ref": "#\/$defs\/literal"
+                },
+                {
+                    "$ref": "#\/$defs\/param"
+                },
+                {
+                    "$ref": "#\/$defs\/ref"
+                },
+                {
+                    "$ref": "#\/$defs\/sprintf"
+                },
+                {
+                    "$ref": "#\/$defs\/assertEquals"
+                }
+            ],
+            "properties": {
+                "$hydrate": {
+                    "type": "string",
+                    "enum": [
+                        "literal",
+                        "param",
+                        "ref",
+                        "sprintf",
+                        "assertEquals"
+                    ]
+                }
+            },
+            "required": [
+                "$hydrate"
+            ]
+        },
+        "literal": {
+            "description": "A literal returns it's exact data value before any other processing.",
+            "type": "object",
+            "properties": {
+                "data": {
+                    "x-no-hydrate": true,
+                    "description": "The value of the literal",
+                    "type": [
+                        "array",
+                        "object",
+                        "string",
+                        "number",
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "$hydrate": {
+                    "type": "string",
+                    "enum": [
+                        "literal"
+                    ]
+                }
+            },
+            "required": [
+                "data",
+                "$hydrate"
+            ]
+        },
+        "param": {
+            "description": "Params are data passed in during hydration.",
+            "type": "object",
+            "properties": {
+                "ref": {
+                    "description": "The parameter name.",
+                    "type": "string",
+                    "x-no-hydrate": true
+                },
+                "default": {
+                    "oneOf": [
+                        {
+                            "type": [
+                                "array",
+                                "object",
+                                "string",
+                                "number",
+                                "boolean",
+                                "null"
+                            ],
+                            "default": null
+                        },
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ],
+                    "description": "A default value for the parameter value. Defaults to null.",
+                    "properties": {
+                        "$hydrate": {
+                            "type": "string",
+                            "enum": [
+                                "literal",
+                                "param",
+                                "ref",
+                                "sprintf",
+                                "assertEquals"
+                            ]
+                        }
+                    }
+                },
+                "$hydrate": {
+                    "type": "string",
+                    "enum": [
+                        "param"
+                    ]
+                }
+            },
+            "required": [
+                "ref",
+                "$hydrate"
+            ]
+        },
+        "ref": {
+            "type": "object",
+            "description": "Reference data from other parts of the hydration by it's path.",
+            "properties": {
+                "ref": {
+                    "description": "A local reference within the document. For example: \"\/path\/to\/property\/from\/root\".",
+                    "type": "string",
+                    "x-no-hydrate": true
+                },
+                "default": {
+                    "oneOf": [
+                        {
+                            "type": [
+                                "array",
+                                "object",
+                                "string",
+                                "number",
+                                "boolean",
+                                "null"
+                            ],
+                            "default": null
+                        },
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ],
+                    "description": "Default value if the ref could not be resolved. Defaults to null.",
+                    "properties": {
+                        "$hydrate": {
+                            "type": "string",
+                            "enum": [
+                                "literal",
+                                "param",
+                                "ref",
+                                "sprintf",
+                                "assertEquals"
+                            ]
+                        }
+                    }
+                },
+                "$hydrate": {
+                    "type": "string",
+                    "enum": [
+                        "ref"
+                    ]
+                }
+            },
+            "required": [
+                "ref",
+                "$hydrate"
+            ]
+        },
+        "sprintf": {
+            "type": "object",
+            "description": "Call sprintf($format, $args).",
+            "properties": {
+                "format": {
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ],
+                    "description": "The format string.",
+                    "properties": {
+                        "$hydrate": {
+                            "type": "string",
+                            "enum": [
+                                "literal",
+                                "param",
+                                "ref",
+                                "sprintf",
+                                "assertEquals"
+                            ]
+                        }
+                    }
+                },
+                "args": {
+                    "oneOf": [
+                        {
+                            "type": "array"
+                        },
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ],
+                    "description": "Arguments to interpolate into the format string.",
+                    "properties": {
+                        "$hydrate": {
+                            "type": "string",
+                            "enum": [
+                                "literal",
+                                "param",
+                                "ref",
+                                "sprintf",
+                                "assertEquals"
+                            ]
+                        }
+                    }
+                },
+                "$hydrate": {
+                    "type": "string",
+                    "enum": [
+                        "sprintf"
+                    ]
+                }
+            },
+            "required": [
+                "format",
+                "$hydrate"
+            ]
+        },
+        "assertEquals": {
+            "type": "object",
+            "description": "Call the function `PHPUnit\\Framework\\Assert::assertEquals(expected, actual, message, delta, maxDepth, canonicalize, ignoreCase)`",
+            "properties": {
+                "expected": {
+                    "oneOf": [
+                        [],
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ],
+                    "properties": {
+                        "$hydrate": {
+                            "type": "string",
+                            "enum": [
+                                "literal",
+                                "param",
+                                "ref",
+                                "sprintf",
+                                "assertEquals"
+                            ]
+                        }
+                    }
+                },
+                "actual": {
+                    "oneOf": [
+                        [],
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ],
+                    "properties": {
+                        "$hydrate": {
+                            "type": "string",
+                            "enum": [
+                                "literal",
+                                "param",
+                                "ref",
+                                "sprintf",
+                                "assertEquals"
+                            ]
+                        }
+                    }
+                },
+                "message": {
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "default": ""
+                        },
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ],
+                    "properties": {
+                        "$hydrate": {
+                            "type": "string",
+                            "enum": [
+                                "literal",
+                                "param",
+                                "ref",
+                                "sprintf",
+                                "assertEquals"
+                            ]
+                        }
+                    }
+                },
+                "delta": {
+                    "oneOf": [
+                        {
+                            "type": "number",
+                            "default": 0
+                        },
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ],
+                    "properties": {
+                        "$hydrate": {
+                            "type": "string",
+                            "enum": [
+                                "literal",
+                                "param",
+                                "ref",
+                                "sprintf",
+                                "assertEquals"
+                            ]
+                        }
+                    }
+                },
+                "maxDepth": {
+                    "oneOf": [
+                        {
+                            "type": "integer",
+                            "default": 10
+                        },
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ],
+                    "properties": {
+                        "$hydrate": {
+                            "type": "string",
+                            "enum": [
+                                "literal",
+                                "param",
+                                "ref",
+                                "sprintf",
+                                "assertEquals"
+                            ]
+                        }
+                    }
+                },
+                "canonicalize": {
+                    "oneOf": [
+                        {
+                            "type": "boolean",
+                            "default": false
+                        },
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ],
+                    "properties": {
+                        "$hydrate": {
+                            "type": "string",
+                            "enum": [
+                                "literal",
+                                "param",
+                                "ref",
+                                "sprintf",
+                                "assertEquals"
+                            ]
+                        }
+                    }
+                },
+                "ignoreCase": {
+                    "oneOf": [
+                        {
+                            "type": "boolean",
+                            "default": false
+                        },
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ],
+                    "properties": {
+                        "$hydrate": {
+                            "type": "string",
+                            "enum": [
+                                "literal",
+                                "param",
+                                "ref",
+                                "sprintf",
+                                "assertEquals"
+                            ]
+                        }
+                    }
+                },
+                "$hydrate": {
+                    "type": "string",
+                    "enum": [
+                        "assertEquals"
+                    ]
+                }
+            },
+            "required": [
+                "expected",
+                "actual",
+                "$hydrate"
+            ]
+        }
+    }
+}

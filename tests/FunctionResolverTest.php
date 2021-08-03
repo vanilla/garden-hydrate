@@ -7,6 +7,7 @@
 
 namespace Garden\Hydrate\Tests;
 
+use Garden\Hydrate\DataHydrator;
 use Garden\Hydrate\Resolvers\FunctionResolver;
 use Garden\Schema\ValidationException;
 use PHPUnit\Framework\TestCase;
@@ -191,5 +192,22 @@ class FunctionResolverTest extends TestCase {
         $expected = new \ArrayObject(['foo' => 'bar']);
         $actual = $resolver->resolve(['a' => $expected], []);
         $this->assertSame($expected, $actual);
+    }
+
+    /**
+     * Test type name generation.
+     */
+    public function testGetType() {
+        $resolver = new FunctionResolver([DataHydrator::class, 'makeResolver']);
+        $this->assertSame('makeResolver', $resolver->getType());
+
+        $resolver = new FunctionResolver([$this, 'testGetType']);
+        $this->assertSame('testGetType', $resolver->getType());
+
+        $resolver = new FunctionResolver([$this, 'testGetType'], 'customName');
+        $this->assertSame('customName', $resolver->getType());
+
+        $resolver = new FunctionResolver('sprintf');
+        $this->assertSame('sprintf', $resolver->getType());
     }
 }
