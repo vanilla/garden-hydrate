@@ -97,6 +97,7 @@ class HydrateableSchema extends Schema {
      * Allow hydrate in a schema.
      *
      * @param array $schemaArray
+     * @param bool $isTopLevel Set to true to indicate that we are the top level definition of the schema and not a property.
      *
      * @return array
      */
