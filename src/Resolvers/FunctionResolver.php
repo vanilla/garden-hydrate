@@ -109,6 +109,11 @@ class FunctionResolver extends AbstractDataResolver {
                 }
             }
 
+            // Fallback so we don't end up with an empty schema array.
+            if (!isset($schema['type'])) {
+                $schema['type'] = ['boolean', 'string', 'number', 'array', 'object'];
+            }
+
             $properties[$param->getName()] = $schema;
         }
         $propertiesName = implode(", ", array_keys($properties));

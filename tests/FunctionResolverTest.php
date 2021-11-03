@@ -189,8 +189,9 @@ class FunctionResolverTest extends TestCase {
         $actual = $resolver->resolve(['a' => 'foo'], []);
         $this->assertSame('foo', $actual);
 
-        $expected = new \ArrayObject(['foo' => 'bar']);
-        $actual = $resolver->resolve(['a' => $expected], []);
+        $input = new \ArrayObject(['foo' => 'bar']);
+        $actual = $resolver->resolve(['a' => $input], []);
+        $expected = ['foo' => 'bar'];
         $this->assertSame($expected, $actual);
     }
 
