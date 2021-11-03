@@ -5,17 +5,9 @@
  * @license MIT
  */
 
-
-/**
- * @author Todd Burry <todd@vanillaforums.com>
- * @copyright 2009-2020 Vanilla Forums Inc.
- * @license MIT
- */
-
 namespace Garden\Hydrate\Tests\Fixtures;
 
 use Garden\Hydrate\Resolvers\AbstractDataResolver;
-use Garden\Hydrate\DataHydrator;
 use Garden\Schema\Schema;
 
 /**
