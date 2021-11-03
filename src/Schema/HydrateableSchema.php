@@ -75,8 +75,8 @@ class HydrateableSchema extends Schema {
             'type' => 'string',
             'enum' => [$this->ownHydrateType],
         ];
-        $schemaArray = $this->allowHydrateInSchema($schemaArray);
         $this->markHydrateRequired($schemaArray);
+        $schemaArray = $this->allowHydrateInSchema($schemaArray, true);
         parent::__construct($schemaArray);
     }
 
@@ -100,12 +100,13 @@ class HydrateableSchema extends Schema {
      *
      * @return array
      */
-    private function allowHydrateInSchema(array $schemaArray): array {
+    private function allowHydrateInSchema(array $schemaArray, bool $isTopLevel = false): array {
+        $notHydrateable = $isTopLevel || ($schemaArray[self::X_NO_HYDRATE] ?? false);
         if (isset($schemaArray['oneOf'])) {
             // We already have a oneOf.
             // Modify the existing items
             $items = $schemaArray['oneOf'];
-            $items[] = JsonSchemaGenerator::ROOT_HYDRATE_REF;
+            $items[] = JsonSchemaGenerator::getDefReference(JsonSchemaGenerator::ROOT_HYDRATE_GROUP);
 
             // Push into it.
             $schemaArray['oneOf'] = $items;
@@ -134,6 +135,9 @@ class HydrateableSchema extends Schema {
                     $hasHydrate = true;
                     $newProperties[$key] = $property;
                 } else {
+                    if ($property instanceof Schema) {
+                        $property = $property->getSchemaArray();
+                    }
                     $newProperties[$key] = $this->allowHydrateInSchema($property);
                 }
             }
@@ -141,10 +145,13 @@ class HydrateableSchema extends Schema {
 
             // If we are a nested property (or a non-object primitive type)
             // we will become a oneOf type, creating a union with hydrate.
-            if (!$hasHydrate) {
+            if (!$hasHydrate && !$notHydrateable) {
+                $schemaArray['not'] = [
+                    "required" => [DataHydrator::KEY_HYDRATE],
+                ];
                 $schemaArray = $this->oneOfWithHydrate($schemaArray);
             }
-        } else {
+        } elseif (!$notHydrateable) {
             // oneOfWithHydrate is required if there is a different possible object type here (then $literal is needed).
             // Normally by this point we've already ruled out object types and wouldn't need this, unless the item is a ref.
             // If it's a ref, it could be anything.
@@ -154,7 +161,7 @@ class HydrateableSchema extends Schema {
     }
 
     /**
-     * Take a schema array an union it with the
+     * Take a schema array and union it with the the root hydrator.
      *
      * @param array $schemaArray
      * @return array[]
@@ -163,37 +170,16 @@ class HydrateableSchema extends Schema {
         // Clear the description, we're hoisting it.
         $hydrateGroup = $schemaArray[self::X_HYDRATE_GROUP] ?? JsonSchemaGenerator::ROOT_HYDRATE_GROUP;
         $description = $schemaArray['description'] ?? null;
-        unset($schemaArray['description']);
         $schemaArray = [
             'oneOf' => [
                 $schemaArray,
-                JsonSchemaGenerator::ROOT_HYDRATE_REF,
+                JsonSchemaGenerator::getDefReference($hydrateGroup),
             ]
         ];
-        // Put back the description if there was one.
+        // Hoist up the description if we had one.
         if ($description !== null) {
             $schemaArray['description'] = $description;
         }
-
-        // Add a discriminator field for autocomplete.
-        foreach ($schemaArray['oneOf'] as $of) {
-            $ofRef = $of['$ref'] ?? null;
-            if ($ofRef === JsonSchemaGenerator::ROOT_HYDRATE_REF['$ref']) {
-                break;
-            }
-        }
-        // Currently this CANNOT be a reference.
-        // Most autocompleting tools require this level of verbosity to not fall apart.
-        $hydrateValue = [
-            'type' => 'string',
-        ];
-        $hydrateEnum = $this->hydrateTypesByGroup[$hydrateGroup] ?? null;
-        if ($hydrateEnum !== null) {
-            $hydrateValue['enum'] = $hydrateEnum;
-        }
-        $schemaArray['properties'] = [
-            DataHydrator::KEY_HYDRATE => $hydrateValue
-        ];
 
         return $schemaArray;
     }

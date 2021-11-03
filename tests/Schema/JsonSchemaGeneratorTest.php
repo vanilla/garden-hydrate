@@ -5,11 +5,12 @@
  * @license MIT
  */
 
-namespace Garden\Hydrate\Tests;
+namespace Garden\Hydrate\Tests\Schema;
 
 use Garden\Hydrate\DataHydrator;
 use Garden\Hydrate\Resolvers\FunctionResolver;
 use Garden\Hydrate\Schema\JsonSchemaGenerator;
+use Garden\Hydrate\Tests\Fixtures\NestedObjSchemaResolver;
 use Garden\Hydrate\Tests\Fixtures\TestStringResolver;
 use Garden\Hydrate\Tests\Fixtures\TestTypeGroupResolver;
 use PHPUnit\Framework\TestCase;
@@ -33,6 +34,7 @@ class JsonSchemaGeneratorTest extends TestCase {
         $hydrator->addResolver(
             new FunctionResolver([TestCase::class, 'assertEquals'])
         );
+        $hydrator->addResolver(new NestedObjSchemaResolver());
         $generator = $hydrator->getSchemaGenerator();
         $schema = $generator->getDefaultSchema();
 

@@ -5,7 +5,7 @@
  * @license MIT
  */
 
-namespace Garden\Hydrate\Tests;
+namespace Garden\Hydrate\Tests\Schema;
 
 use Garden\Hydrate\DataHydrator;
 use Garden\Hydrate\Exception\InvalidHydrateSpecException;
@@ -39,12 +39,6 @@ class HydrateableSchemaTest extends TestCase {
                             '$ref' => '#/$defs/resolver',
                         ],
                     ],
-                    'properties' => [
-                        '$hydrate' => [
-                            'type' => 'string',
-                            // No enum here because we didn't give a type/group mapping.
-                        ],
-                    ],
                 ],
                 '$hydrate' => [
                     'type' => 'string',
@@ -61,7 +55,7 @@ class HydrateableSchemaTest extends TestCase {
     }
 
     /**
-     * Root level primitive types are not allowed (because all root types need to have a $hydrate parameter.
+     * Root level primitive types are not allowed (because all root types need to have a $hydrate parameter).
      */
     public function testPrimitiveTypeException() {
         $in = [
@@ -169,12 +163,13 @@ class HydrateableSchemaTest extends TestCase {
         ], 'inType', $groups)->getSchemaArray();
 
         $this->assertSame(
-            $groups[JsonSchemaGenerator::ROOT_HYDRATE_GROUP],
-            $hydrateable['properties']['any']['properties'][DataHydrator::KEY_HYDRATE]['enum']
+            ['$ref' => '#/$defs/' . JsonSchemaGenerator::ROOT_HYDRATE_GROUP],
+            $hydrateable['properties']['any']['oneOf'][1]
         );
+
         $this->assertSame(
-            $groups['subgroup'],
-            $hydrateable['properties']['limited']['properties'][DataHydrator::KEY_HYDRATE]['enum']
+            ['$ref' => '#/$defs/subgroup'],
+            $hydrateable['properties']['limited']['oneOf'][1]
         );
     }
 }
