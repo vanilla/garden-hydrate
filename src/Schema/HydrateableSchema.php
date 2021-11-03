@@ -69,6 +69,9 @@ class HydrateableSchema extends Schema {
             throw new InvalidHydrateSpecException($message);
         }
 
+        // Make sure we are an object.
+        $schemaArray['type'] = 'object';
+
         // Make sure hydrate key is required.
         $schemaArray['properties'] = $schemaArray['properties'] ?? [];
         $schemaArray['properties'][DataHydrator::KEY_HYDRATE] = [
