@@ -73,10 +73,22 @@ class HydrateableSchemaTest extends TestCase {
         $in = [
             'oneOf' => [
                 [
-                    'type' => 'number'
+                    'type' => 'object',
+                    'properties' => [
+                        'num' => [
+                            'type' => 'number'
+                        ],
+                        'required' => ['num']
+                    ]
                 ],
                 [
-                    'type' => 'string'
+                    'type' => 'object',
+                    'properties' => [
+                        'str' => [
+                            'type' => 'string'
+                        ],
+                        'required' => ['str']
+                    ]
                 ]
             ],
         ];
@@ -84,15 +96,28 @@ class HydrateableSchemaTest extends TestCase {
         $expected = [
             'oneOf' => [
                 [
-                    'type' => 'number'
+                    'type' => 'object',
+                    'properties' => [
+                        'num' => [
+                            'type' => 'number'
+                        ],
+                        'required' => ['num']
+                    ]
                 ],
                 [
-                    'type' => 'string'
+                    'type' => 'object',
+                    'properties' => [
+                        'str' => [
+                            'type' => 'string'
+                        ],
+                        'required' => ['str']
+                    ]
                 ],
                 [
                     '$ref' => '#/$defs/resolver',
                 ],
             ],
+            'type' => 'object',
             'properties' => [
                 '$hydrate' => [
                     'type' => 'string',
