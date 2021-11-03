@@ -170,6 +170,7 @@ class HydrateableSchema extends Schema {
         // Clear the description, we're hoisting it.
         $hydrateGroup = $schemaArray[self::X_HYDRATE_GROUP] ?? JsonSchemaGenerator::ROOT_HYDRATE_GROUP;
         $description = $schemaArray['description'] ?? null;
+        unset($schemaArray['description']);
         $schemaArray = [
             'oneOf' => [
                 $schemaArray,

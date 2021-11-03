@@ -80,7 +80,6 @@
                 "default": {
                     "oneOf": [
                         {
-                            "description": "A default value for the parameter value. Defaults to null.",
                             "type": [
                                 "array",
                                 "object",
@@ -121,7 +120,6 @@
                 "default": {
                     "oneOf": [
                         {
-                            "description": "Default value if the ref could not be resolved. Defaults to null.",
                             "type": [
                                 "array",
                                 "object",
@@ -157,7 +155,6 @@
                 "format": {
                     "oneOf": [
                         {
-                            "description": "The format string.",
                             "type": "string"
                         },
                         {
@@ -169,7 +166,6 @@
                 "args": {
                     "oneOf": [
                         {
-                            "description": "Arguments to interpolate into the format string.",
                             "type": "array"
                         },
                         {
