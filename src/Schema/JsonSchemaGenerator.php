@@ -88,6 +88,18 @@ class JsonSchemaGenerator {
      */
     public function getDefaultSchema(): Schema {
         $schema = new Schema(self::getDefReference());
+        $schema = $this->decorateSchema($schema);
+        return $schema;
+    }
+
+    /**
+     * Decorate an existing schema with the definitions of the hydration.
+     *
+     * @param Schema $schema The schema to decorate.
+     *
+     * @return Schema
+     */
+    public function decorateSchema(Schema $schema): Schema {
         $schema->setField('$schema', self::SCHEMA_DRAFT_7_URL);
         $schema->setField('$defs', $this->createCombinedDefsArray());
         return $schema;

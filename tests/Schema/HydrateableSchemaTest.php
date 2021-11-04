@@ -76,20 +76,20 @@ class HydrateableSchemaTest extends TestCase {
                     'type' => 'object',
                     'properties' => [
                         'num' => [
-                            'type' => 'number'
+                            'type' => 'number',
                         ],
-                        'required' => ['num']
-                    ]
+                        'required' => ['num'],
+                    ],
                 ],
                 [
                     'type' => 'object',
                     'properties' => [
                         'str' => [
-                            'type' => 'string'
+                            'type' => 'string',
                         ],
-                        'required' => ['str']
-                    ]
-                ]
+                        'required' => ['str'],
+                    ],
+                ],
             ],
         ];
 
@@ -99,19 +99,19 @@ class HydrateableSchemaTest extends TestCase {
                     'type' => 'object',
                     'properties' => [
                         'num' => [
-                            'type' => 'number'
+                            'type' => 'number',
                         ],
-                        'required' => ['num']
-                    ]
+                        'required' => ['num'],
+                    ],
                 ],
                 [
                     'type' => 'object',
                     'properties' => [
                         'str' => [
-                            'type' => 'string'
+                            'type' => 'string',
                         ],
-                        'required' => ['str']
-                    ]
+                        'required' => ['str'],
+                    ],
                 ],
                 [
                     '$ref' => '#/$defs/resolver',
@@ -196,5 +196,55 @@ class HydrateableSchemaTest extends TestCase {
             ['$ref' => '#/$defs/subgroup'],
             $hydrateable['properties']['limited']['oneOf'][1]
         );
+    }
+
+    /**
+     * Test hydration of list items.
+     */
+    public function testHydrateItems() {
+        $schema = [
+            'type' => 'object',
+            'properties' => [
+                'childList' => [
+                    HydrateableSchema::X_NO_HYDRATE => true,
+                    HydrateableSchema::X_FORCE_HYDRATE_ITEMS => true,
+                    'type' => 'array',
+                    'items' => [
+                        'type' => 'string',
+                    ],
+                ],
+            ],
+        ];
+        $hydrateable = (new HydrateableSchema($schema, 'myType'))->getSchemaArray();
+
+        $this->assertSame([
+            'type' => 'object',
+            'properties' => [
+                'childList' => [
+                    'x-no-hydrate' => true,
+                    'x-force-hydrate-items' => true,
+                    'type' => 'array',
+
+                    // Items were are hydrateable but not the childList itself.
+                    'items' => [
+                        'oneOf' => [
+                            [
+                                'type' => 'string',
+                            ],
+                            [
+                                '$ref' => '#/$defs/resolver',
+                            ],
+                        ],
+                    ],
+                ],
+                '$hydrate' => [
+                    'type' => 'string',
+                    'enum' => ['myType'],
+                ],
+            ],
+            'required' => [
+                '$hydrate',
+            ]
+        ], $hydrateable);
     }
 }
