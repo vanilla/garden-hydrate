@@ -21,11 +21,6 @@ class JsonSchemaGenerator {
     /** @var string The definition key used for the combined resolver types. */
     public const ROOT_HYDRATE_GROUP = 'resolver';
 
-    /** @var string[] A reference to all resolver types. */
-    public const ROOT_HYDRATE_REF = [
-        '$ref' => '#/$defs/' . self::ROOT_HYDRATE_GROUP
-    ];
-
     /** @var AbstractDataResolver[] */
     private $resolvers;
 
@@ -92,7 +87,19 @@ class JsonSchemaGenerator {
      * @return Schema
      */
     public function getDefaultSchema(): Schema {
-        $schema = new Schema(self::ROOT_HYDRATE_REF);
+        $schema = new Schema(self::getDefReference());
+        $schema = $this->decorateSchema($schema);
+        return $schema;
+    }
+
+    /**
+     * Decorate an existing schema with the definitions of the hydration.
+     *
+     * @param Schema $schema The schema to decorate.
+     *
+     * @return Schema
+     */
+    public function decorateSchema(Schema $schema): Schema {
         $schema->setField('$schema', self::SCHEMA_DRAFT_7_URL);
         $schema->setField('$defs', $this->createCombinedDefsArray());
         return $schema;
@@ -112,7 +119,7 @@ class JsonSchemaGenerator {
                 'properties' => [
                     DataHydrator::KEY_HYDRATE => [
                         'type' => 'string',
-                        'enum' => $this->allTypes,
+                        'enum' => $types,
                     ]
                 ],
                 'required' => [DataHydrator::KEY_HYDRATE]
@@ -133,7 +140,7 @@ class JsonSchemaGenerator {
      *
      * @return array The reference.
      */
-    private static function getDefReference(string $defKey): array {
+    public static function getDefReference(string $defKey = self::ROOT_HYDRATE_GROUP): array {
         return [
             '$ref' => '#/$defs/' . $defKey,
         ];
@@ -149,7 +156,7 @@ class JsonSchemaGenerator {
         $type = $resolver->getType();
         $schema = $resolver->getSchema();
         $schemaArray = $schema ? $schema->getSchemaArray() : HydrateableSchema::ANY_OBJECT_SCHEMA_ARRAY;
-        $hydrateableSchema = new HydrateableSchema($schemaArray, $type, $this->typesByGroup);
+        $hydrateableSchema = new HydrateableSchema($schemaArray, $type);
         $this->referencesByType[$type] = $hydrateableSchema->getSchemaArray();
     }
 

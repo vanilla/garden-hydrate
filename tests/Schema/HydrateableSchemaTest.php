@@ -5,7 +5,7 @@
  * @license MIT
  */
 
-namespace Garden\Hydrate\Tests;
+namespace Garden\Hydrate\Tests\Schema;
 
 use Garden\Hydrate\DataHydrator;
 use Garden\Hydrate\Exception\InvalidHydrateSpecException;
@@ -39,12 +39,6 @@ class HydrateableSchemaTest extends TestCase {
                             '$ref' => '#/$defs/resolver',
                         ],
                     ],
-                    'properties' => [
-                        '$hydrate' => [
-                            'type' => 'string',
-                            // No enum here because we didn't give a type/group mapping.
-                        ],
-                    ],
                 ],
                 '$hydrate' => [
                     'type' => 'string',
@@ -61,7 +55,7 @@ class HydrateableSchemaTest extends TestCase {
     }
 
     /**
-     * Root level primitive types are not allowed (because all root types need to have a $hydrate parameter.
+     * Root level primitive types are not allowed (because all root types need to have a $hydrate parameter).
      */
     public function testPrimitiveTypeException() {
         $in = [
@@ -79,26 +73,51 @@ class HydrateableSchemaTest extends TestCase {
         $in = [
             'oneOf' => [
                 [
-                    'type' => 'number'
+                    'type' => 'object',
+                    'properties' => [
+                        'num' => [
+                            'type' => 'number',
+                        ],
+                        'required' => ['num'],
+                    ],
                 ],
                 [
-                    'type' => 'string'
-                ]
+                    'type' => 'object',
+                    'properties' => [
+                        'str' => [
+                            'type' => 'string',
+                        ],
+                        'required' => ['str'],
+                    ],
+                ],
             ],
         ];
 
         $expected = [
             'oneOf' => [
                 [
-                    'type' => 'number'
+                    'type' => 'object',
+                    'properties' => [
+                        'num' => [
+                            'type' => 'number',
+                        ],
+                        'required' => ['num'],
+                    ],
                 ],
                 [
-                    'type' => 'string'
+                    'type' => 'object',
+                    'properties' => [
+                        'str' => [
+                            'type' => 'string',
+                        ],
+                        'required' => ['str'],
+                    ],
                 ],
                 [
                     '$ref' => '#/$defs/resolver',
                 ],
             ],
+            'type' => 'object',
             'properties' => [
                 '$hydrate' => [
                     'type' => 'string',
@@ -169,12 +188,63 @@ class HydrateableSchemaTest extends TestCase {
         ], 'inType', $groups)->getSchemaArray();
 
         $this->assertSame(
-            $groups[JsonSchemaGenerator::ROOT_HYDRATE_GROUP],
-            $hydrateable['properties']['any']['properties'][DataHydrator::KEY_HYDRATE]['enum']
+            ['$ref' => '#/$defs/' . JsonSchemaGenerator::ROOT_HYDRATE_GROUP],
+            $hydrateable['properties']['any']['oneOf'][1]
         );
+
         $this->assertSame(
-            $groups['subgroup'],
-            $hydrateable['properties']['limited']['properties'][DataHydrator::KEY_HYDRATE]['enum']
+            ['$ref' => '#/$defs/subgroup'],
+            $hydrateable['properties']['limited']['oneOf'][1]
         );
+    }
+
+    /**
+     * Test hydration of list items.
+     */
+    public function testHydrateItems() {
+        $schema = [
+            'type' => 'object',
+            'properties' => [
+                'childList' => [
+                    HydrateableSchema::X_NO_HYDRATE => true,
+                    HydrateableSchema::X_FORCE_HYDRATE_ITEMS => true,
+                    'type' => 'array',
+                    'items' => [
+                        'type' => 'string',
+                    ],
+                ],
+            ],
+        ];
+        $hydrateable = (new HydrateableSchema($schema, 'myType'))->getSchemaArray();
+
+        $this->assertSame([
+            'type' => 'object',
+            'properties' => [
+                'childList' => [
+                    'x-no-hydrate' => true,
+                    'x-force-hydrate-items' => true,
+                    'type' => 'array',
+
+                    // Items were are hydrateable but not the childList itself.
+                    'items' => [
+                        'oneOf' => [
+                            [
+                                'type' => 'string',
+                            ],
+                            [
+                                '$ref' => '#/$defs/resolver',
+                            ],
+                        ],
+                    ],
+                ],
+                '$hydrate' => [
+                    'type' => 'string',
+                    'enum' => ['myType'],
+                ],
+            ],
+            'required' => [
+                '$hydrate',
+            ]
+        ], $hydrateable);
     }
 }

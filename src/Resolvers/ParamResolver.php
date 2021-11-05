@@ -8,7 +8,6 @@
 namespace Garden\Hydrate\Resolvers;
 
 use Garden\Hydrate\Schema\HydrateableSchema;
-use Garden\Hydrate\Schema\JsonSchemaGenerator;
 use Garden\JSON\ReferenceResolverTrait;
 use Garden\Schema\Schema;
 
