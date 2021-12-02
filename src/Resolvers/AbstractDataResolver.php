@@ -23,8 +23,9 @@ abstract class AbstractDataResolver implements ValidatableResolverInterface {
      * {@inheritDoc}
      */
     public function validate(array $data): array {
-        if ($this->schema !== null) {
-            return $this->schema->validate($data);
+        $schema = $this->getSchema();
+        if ($schema !== null) {
+            return $schema->validate($data);
         } else {
             return $data;
         }
