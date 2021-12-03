@@ -10,6 +10,7 @@ namespace Garden\Hydrate;
 use Exception;
 use Garden\Hydrate\Exception\InvalidHydrateSpecException;
 use Garden\Hydrate\Exception\ResolverNotFoundException;
+use Garden\Hydrate\Middleware\RoleFilterMiddleware;
 use Garden\Hydrate\Middleware\TransformMiddleware;
 use Garden\Hydrate\Resolvers\AbstractDataResolver;
 use Garden\Hydrate\Resolvers\LiteralResolver;
@@ -69,6 +70,7 @@ class DataHydrator {
         $this->addResolver(new RefResolver());
         $this->addResolver(new SprintfResolver());
 
+        $this->addMiddleware(new RoleFilterMiddleware());
         $this->addMiddleware(new TransformMiddleware());
     }
 
