@@ -10,6 +10,7 @@ namespace Garden\Hydrate\Tests;
 use Garden\Hydrate\DataHydrator;
 use Garden\Hydrate\Exception\ResolverNotFoundException;
 use Garden\Hydrate\NullExceptionHandler;
+use Garden\Hydrate\Tests\Fixtures\NestedObjSchemaResolver;
 use PHPUnit\Framework\TestCase;
 use Garden\Hydrate\Tests\Fixtures\ExceptionThrowerResolver;
 use Garden\Hydrate\Tests\Fixtures\TestExceptionHandler;
@@ -217,5 +218,37 @@ class DataHydratorTest extends TestCase {
         $this->assertTrue($hydrator->hasResolver('param'));
         $this->assertTrue($hydrator->hasResolver('literal'));
         $this->assertTrue($hydrator->hasResolver('sprintf'));
+    }
+
+    /**
+     * Validate that data resolver schemas are applied.
+     */
+    public function testE2ESchemaValidation() {
+        $hydrator = new DataHydrator();
+        $hydrator->addResolver(new NestedObjSchemaResolver());
+        $input = [
+            '$hydrate' => 'nestedObjSchema',
+            'nested' => [
+                'foo' => 'hello foo',
+                'bar' => 'hello bar',
+                'notInSchema' => 'not in schema',
+            ],
+        ];
+
+        // Fields are stripped.
+        $expected = [
+            'nested' => [
+                'foo' => 'hello foo',
+                'bar' => 'hello bar',
+            ]
+        ];
+
+        $actual = $hydrator->resolve($input, []);
+        $this->assertSame($expected, $actual);
+
+        // Should throw validation errors (that would get caught by the exception handler if there was one).
+        $this->expectExceptionMessage("nested is required");
+        $input = ['$hydrate' => 'nestedObjSchema'];
+        $hydrator->resolve($input);
     }
 }
