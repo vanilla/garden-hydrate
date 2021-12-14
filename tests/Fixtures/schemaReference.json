@@ -36,6 +36,28 @@
                     ]
                 }
             },
+            "$middleware": {
+                "type": "object",
+                "properties": {
+                    "role-filter": {
+                        "type": "object",
+                        "properties": {
+                            "roleIDs": {
+                                "type": "array",
+                                "items": {
+                                    "type": "number"
+                                }
+                            }
+                        },
+                        "required": [
+                            "roleIDs"
+                        ]
+                    }
+                },
+                "required": [
+                    "role-filter"
+                ]
+            },
             "required": [
                 "$hydrate"
             ]

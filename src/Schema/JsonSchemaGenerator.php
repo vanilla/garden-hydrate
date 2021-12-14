@@ -122,6 +122,16 @@ class JsonSchemaGenerator {
                         'enum' => $types,
                     ]
                 ],
+                DataHydrator::KEY_MIDDLEWARE => Schema::parse([
+                    'role-filter' => Schema::parse([
+                        'roleIDs' => [
+                            'type' => 'array',
+                            'items' => [
+                                'type' => 'number'
+                            ]
+                        ]
+                    ])
+                ]),
                 'required' => [DataHydrator::KEY_HYDRATE]
             ];
         }
