@@ -169,7 +169,9 @@ class JsonSchemaGenerator {
                 $middlewareSchemas['$middleware'] = ($middleware->getMiddlewareSchema())->getSchemaArray();
             }
         }
-        $schemaArray['properties'] = array_merge($schemaArray['properties'], $middlewareSchemas);
+        if (!empty($schemaArray['properties'])) {
+            $schemaArray['properties'] = array_merge($schemaArray['properties'], $middlewareSchemas);
+        }
         $hydrateableSchema = new HydrateableSchema($schemaArray, $type);
         $this->referencesByType[$type] = $hydrateableSchema->getSchemaArray();
     }
