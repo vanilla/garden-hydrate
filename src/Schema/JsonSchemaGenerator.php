@@ -47,13 +47,18 @@ class JsonSchemaGenerator {
         self::ROOT_HYDRATE_GROUP => [],
     ];
 
+    /* @var DataHydrator */
+    private $dataHydrator;
+
     /**
      * Constructor.
      *
      * @param AbstractDataResolver[] $resolvers
+     * @param DataHydrator[] $dataHydrator
      */
-    public function __construct(array $resolvers) {
+    public function __construct(array $resolvers, DataHydrator $dataHydrator) {
         $this->resolvers = $resolvers;
+        $this->dataHydrator = $dataHydrator;
 
         // We need to know all the types before we build our references.
         foreach ($this->resolvers as $resolver) {
@@ -148,6 +153,7 @@ class JsonSchemaGenerator {
 
     /**
      * Take a resolver and create a hydrateable schema from it.
+     * Load all/any active middleware schema
      * Store the mappings of the type, group, and schema.
      *
      * @param AbstractDataResolver $resolver
@@ -155,7 +161,14 @@ class JsonSchemaGenerator {
     private function applyResolverAsReference(AbstractDataResolver $resolver) {
         $type = $resolver->getType();
         $schema = $resolver->getSchema();
+        $middlewares = $this->dataHydrator->getMiddlewares();
         $schemaArray = $schema ? $schema->getSchemaArray() : HydrateableSchema::ANY_OBJECT_SCHEMA_ARRAY;
+        foreach($middlewares as $middleware) {
+            if(method_exists($middleware,'getMiddlewareSchema')) {
+                $middlewareSchemas['$middleware'] = ($middleware->getMiddlewareSchema())->getSchemaArray();
+            }
+        }
+        $schemaArray['properties'] = array_merge($schemaArray['properties'], $middlewareSchemas);
         $hydrateableSchema = new HydrateableSchema($schemaArray, $type);
         $this->referencesByType[$type] = $hydrateableSchema->getSchemaArray();
     }

@@ -73,6 +73,13 @@ class DataHydrator {
     }
 
     /**
+     * @return array
+     */
+    public function getMiddlewares(): array {
+        return $this->middlewares;
+    }
+
+    /**
      * @return ParamResolver
      */
     public function getParamResolver(): ParamResolver {
@@ -81,11 +88,10 @@ class DataHydrator {
 
     /**
      * Create a schema generator from all of our registered resolvers.
-     *
      * @return JsonSchemaGenerator
      */
     public function getSchemaGenerator(): JsonSchemaGenerator {
-        $generator = new JsonSchemaGenerator($this->resolvers);
+        $generator = new JsonSchemaGenerator($this->resolvers, $this);
         return $generator;
     }
 
