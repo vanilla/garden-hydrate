@@ -163,8 +163,8 @@ class JsonSchemaGenerator {
         $schema = $resolver->getSchema();
         $middlewares = $this->dataHydrator->getMiddlewares();
         $schemaArray = $schema ? $schema->getSchemaArray() : HydrateableSchema::ANY_OBJECT_SCHEMA_ARRAY;
-        foreach($middlewares as $middleware) {
-            if(method_exists($middleware,'getMiddlewareSchema')) {
+        foreach ($middlewares as $middleware) {
+            if (method_exists($middleware, 'getMiddlewareSchema')) {
                 $middlewareSchemas['$middleware'] = ($middleware->getMiddlewareSchema())->getSchemaArray();
             }
         }
