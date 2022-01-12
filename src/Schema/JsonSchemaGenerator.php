@@ -54,7 +54,7 @@ class JsonSchemaGenerator {
      * Constructor.
      *
      * @param AbstractDataResolver[] $resolvers
-     * @param DataHydrator[] $dataHydrator
+     * @param DataHydrator $dataHydrator
      */
     public function __construct(array $resolvers, DataHydrator $dataHydrator) {
         $this->resolvers = $resolvers;
@@ -162,6 +162,7 @@ class JsonSchemaGenerator {
         $type = $resolver->getType();
         $schema = $resolver->getSchema();
         $middlewares = $this->dataHydrator->getMiddlewares();
+        $middlewareSchemas = [];
         $schemaArray = $schema ? $schema->getSchemaArray() : HydrateableSchema::ANY_OBJECT_SCHEMA_ARRAY;
         foreach ($middlewares as $middleware) {
             if (method_exists($middleware, 'getMiddlewareSchema')) {
