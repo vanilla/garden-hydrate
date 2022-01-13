@@ -22,4 +22,12 @@ interface MiddlewareInterface {
      * @return mixed Returns whatever the middleware or hydrator wants to return.
      */
     public function process(array $data, array $params, DataResolverInterface $next);
+
+    /**
+     * Validate the middleware data against defined schema
+     *
+     * @param array $data
+     * @return mixed
+     */
+    public function validate(array $data);
 }

@@ -15,7 +15,7 @@ use Garden\JSON\Transformer;
 /**
  * Middleware that transforms the data after it has been resolved.
  */
-class TransformMiddleware implements MiddlewareInterface {
+class TransformMiddleware extends AbstractMiddleware {
     /**
      * {@inheritDoc}
      */

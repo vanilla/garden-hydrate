@@ -11,6 +11,7 @@ use Exception;
 use Garden\Hydrate\Exception\InvalidHydrateSpecException;
 use Garden\Hydrate\Exception\ResolverNotFoundException;
 use Garden\Hydrate\Middleware\TransformMiddleware;
+use Garden\Hydrate\Middleware\AbstractMiddleware;
 use Garden\Hydrate\Resolvers\AbstractDataResolver;
 use Garden\Hydrate\Resolvers\LiteralResolver;
 use Garden\Hydrate\Resolvers\ParamResolver;
@@ -280,7 +281,7 @@ class DataHydrator {
         foreach ($middlewares as $middleware) {
             $resolver = new class($middleware, $resolver) implements DataResolverInterface {
                 /**
-                 * @var MiddlewareInterface
+                 * @var AbstractMiddleware
                  */
                 private $middleware;
 
@@ -292,10 +293,10 @@ class DataHydrator {
                 /**
                  * Construct a pointer for a middleware.
                  *
-                 * @param MiddlewareInterface $middleware
+                 * @param AbstractMiddleware $middleware
                  * @param DataResolverInterface $next
                  */
-                public function __construct(MiddlewareInterface $middleware, DataResolverInterface $next) {
+                public function __construct(AbstractMiddleware $middleware, DataResolverInterface $next) {
                     $this->middleware = $middleware;
                     $this->next = $next;
                 }
@@ -308,6 +309,10 @@ class DataHydrator {
                  * @return mixed
                  */
                 public function resolve(array $data, array $params = []) {
+                    $test=true;
+                    if($data['$middleware'] !== null) {
+                        $data['$middleware'] = $this->middleware->validate($data['$middleware']);
+                    }
                     $r = $this->middleware->process($data, $params, $this->next);
                     return $r;
                 }
