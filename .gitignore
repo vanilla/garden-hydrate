@@ -2,3 +2,4 @@ vendor
 composer.lock
 infection.log
 .phpunit.result.cache
+.idea
