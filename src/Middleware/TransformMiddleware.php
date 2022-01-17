@@ -9,8 +9,8 @@ namespace Garden\Hydrate\Middleware;
 
 use Garden\Hydrate\DataHydrator;
 use Garden\Hydrate\DataResolverInterface;
-use Garden\Hydrate\MiddlewareInterface;
 use Garden\JSON\Transformer;
+use Garden\Schema\Schema;
 
 /**
  * Middleware that transforms the data after it has been resolved.
@@ -30,5 +30,25 @@ class TransformMiddleware extends AbstractMiddleware {
             return $result;
         }
         return $data;
+    }
+
+    /**
+     * Get the middleware schema.
+     *
+     * @return Schema
+     */
+    public static function getMiddlewareSchema(): Schema {
+        $schema = new Schema([
+            "x-no-hydrate" => true,
+            "description" => "transform middleware",
+            "type" => "object",
+            "properties" => [
+                "key" => Schema::parse([
+                    "type" => "string",
+                    "description" => "ref"
+                ])
+            ]
+        ]);
+        return $schema;
     }
 }

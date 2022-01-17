@@ -309,7 +309,7 @@ class DataHydrator {
                  * @return mixed
                  */
                 public function resolve(array $data, array $params = []) {
-                    if ($data['$middleware'] !== null) {
+                    if (!empty($data['$middleware']) && $data['$middleware'] !== null) {
                         $data['$middleware'] = $this->middleware->validate($data['$middleware']);
                     }
                     $r = $this->middleware->process($data, $params, $this->next);

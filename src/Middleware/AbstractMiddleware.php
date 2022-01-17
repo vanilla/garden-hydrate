@@ -38,4 +38,9 @@ abstract class AbstractMiddleware implements MiddlewareInterface {
     public function getSchema(): ?Schema {
         return $this->schema;
     }
+
+    /**
+     * @return Schema
+     */
+    abstract public static function getMiddlewareSchema(): Schema;
 }

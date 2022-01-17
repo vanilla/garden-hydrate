@@ -164,14 +164,19 @@ class JsonSchemaGenerator {
         $middlewares = $this->dataHydrator->getMiddlewares();
         $middlewareSchemas = [];
         $schemaArray = $schema ? $schema->getSchemaArray() : HydrateableSchema::ANY_OBJECT_SCHEMA_ARRAY;
+        #if (!empty($middlewares) && $middlewares !== null) {
+        #    $middlewareSchemas['$middleware']['type'] = 'array';
+        #    $middlewareSchemas['$middleware']['description'] = 'Middleware';
+        #}
         foreach ($middlewares as $middleware) {
             if (method_exists($middleware, 'getMiddlewareSchema')) {
-                $middlewareSchemas['$middleware'] = ($middleware->getMiddlewareSchema())->getSchemaArray();
+                $middlewareSchemas['$middleware'][] = ($middleware->getMiddlewareSchema())->getSchemaArray();
             }
         }
         if (!empty($schemaArray['properties'])) {
             $schemaArray['properties'] = array_merge($schemaArray['properties'], $middlewareSchemas);
         }
+        //var_dump(json_decode(json_encode($schemaArray)));exit;
         $hydrateableSchema = new HydrateableSchema($schemaArray, $type);
         $this->referencesByType[$type] = $hydrateableSchema->getSchemaArray();
     }
