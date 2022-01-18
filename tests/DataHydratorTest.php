@@ -161,7 +161,9 @@ class DataHydratorTest extends TestCase {
         $spec = [
             '$hydrate' => 'literal', 'data' => ['a' => ['foo' => 'bar']],
             DataHydrator::KEY_MIDDLEWARE => [
-                'transform' => ['baz' => '/a/foo'],
+                'transform' => [
+                    'jsont' => ['baz' => '/a/foo']
+                ],
             ],
         ];
         $expected = ['baz' => 'bar'];
@@ -185,7 +187,9 @@ class DataHydratorTest extends TestCase {
         $spec = [
             'a' => ['foo' => 'bar'],
             DataHydrator::KEY_MIDDLEWARE => [
-                'transform' => ['baz' => '/a/foo'],
+                'transform' => [
+                    'jsont' => ['baz' => '/a/foo']
+                ],
             ],
         ];
         $expected = ['baz' => 'bar'];

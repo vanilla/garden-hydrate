@@ -47,13 +47,18 @@ class JsonSchemaGenerator {
         self::ROOT_HYDRATE_GROUP => [],
     ];
 
+    /* @var DataHydrator */
+    private $dataHydrator;
+
     /**
      * Constructor.
      *
      * @param AbstractDataResolver[] $resolvers
+     * @param DataHydrator $dataHydrator
      */
-    public function __construct(array $resolvers) {
+    public function __construct(array $resolvers, DataHydrator $dataHydrator) {
         $this->resolvers = $resolvers;
+        $this->dataHydrator = $dataHydrator;
 
         // We need to know all the types before we build our references.
         foreach ($this->resolvers as $resolver) {
@@ -112,6 +117,17 @@ class JsonSchemaGenerator {
      */
     private function createCombinedDefsArray(): array {
         $defs = [];
+
+        $middlewareSchema = new Schema([
+            'description' => 'Apply middlewares over the node',
+            'type' => 'object',
+            'properties' => []
+        ]);
+
+        foreach ($this->dataHydrator->getMiddlewares() as $middleware) {
+            $middlewareSchema->setField('properties.' . $middleware->getType(), $middleware->getSchema());
+        }
+
         // Make sure we have defs for groups of things (included the root group that contains everything).
         foreach ($this->typesByGroup as $group => $types) {
             $defs[$group] = [
@@ -120,7 +136,8 @@ class JsonSchemaGenerator {
                     DataHydrator::KEY_HYDRATE => [
                         'type' => 'string',
                         'enum' => $types,
-                    ]
+                    ],
+                    DataHydrator::KEY_MIDDLEWARE => $middlewareSchema,
                 ],
                 'required' => [DataHydrator::KEY_HYDRATE]
             ];
@@ -148,6 +165,7 @@ class JsonSchemaGenerator {
 
     /**
      * Take a resolver and create a hydrateable schema from it.
+     * Load all/any active middleware schema
      * Store the mappings of the type, group, and schema.
      *
      * @param AbstractDataResolver $resolver

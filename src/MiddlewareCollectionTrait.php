@@ -7,26 +7,28 @@
 
 namespace Garden\Hydrate;
 
+use Garden\Hydrate\Middleware\AbstractMiddleware;
+
 /**
  * Apply this to a class to add support for collecting middleware.
  */
 trait MiddlewareCollectionTrait {
     /**
-     * @var MiddlewareInterface[]
+     * @var AbstractMiddleware[]
      */
     private $middlewares = [];
 
     /**
-     * @param MiddlewareInterface $middleware
+     * @param AbstractMiddleware $middleware
      */
-    public function addMiddleware(MiddlewareInterface $middleware): void {
+    public function addMiddleware(AbstractMiddleware $middleware): void {
         $this->middlewares[] = $middleware;
     }
 
     /**
      * Whether or not a middleware exists in the collection.
      *
-     * @param string|MiddlewareInterface $middleware The class name of a middleware or a specific instance to look up.
+     * @param string|AbstractMiddleware $middleware The class name of a middleware or a specific instance to look up.
      * @return bool
      */
     public function hasMiddleware($middleware): bool {

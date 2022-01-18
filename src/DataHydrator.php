@@ -11,6 +11,7 @@ use Exception;
 use Garden\Hydrate\Exception\InvalidHydrateSpecException;
 use Garden\Hydrate\Exception\ResolverNotFoundException;
 use Garden\Hydrate\Middleware\TransformMiddleware;
+use Garden\Hydrate\Middleware\AbstractMiddleware;
 use Garden\Hydrate\Resolvers\AbstractDataResolver;
 use Garden\Hydrate\Resolvers\LiteralResolver;
 use Garden\Hydrate\Resolvers\ParamResolver;
@@ -36,7 +37,7 @@ class DataHydrator {
     private $resolvers = [];
 
     /**
-     * @var MiddlewareInterface[]
+     * @var AbstractMiddleware[]
      */
     private $middlewares = [];
 
@@ -73,6 +74,13 @@ class DataHydrator {
     }
 
     /**
+     * @return AbstractMiddleware[]
+     */
+    public function getMiddlewares(): array {
+        return $this->middlewares;
+    }
+
+    /**
      * @return ParamResolver
      */
     public function getParamResolver(): ParamResolver {
@@ -81,11 +89,10 @@ class DataHydrator {
 
     /**
      * Create a schema generator from all of our registered resolvers.
-     *
      * @return JsonSchemaGenerator
      */
     public function getSchemaGenerator(): JsonSchemaGenerator {
-        $generator = new JsonSchemaGenerator($this->resolvers);
+        $generator = new JsonSchemaGenerator($this->resolvers, $this);
         return $generator;
     }
 
@@ -265,7 +272,7 @@ class DataHydrator {
     /**
      * Make a data resolver out of a collection of middleware and an inner resolver.
      *
-     * @param MiddlewareInterface[] $middlewares
+     * @param AbstractMiddleware[] $middlewares
      * @param DataResolverInterface $inner
      * @return DataResolverInterface
      */
@@ -274,7 +281,7 @@ class DataHydrator {
         foreach ($middlewares as $middleware) {
             $resolver = new class($middleware, $resolver) implements DataResolverInterface {
                 /**
-                 * @var MiddlewareInterface
+                 * @var AbstractMiddleware
                  */
                 private $middleware;
 
@@ -286,10 +293,10 @@ class DataHydrator {
                 /**
                  * Construct a pointer for a middleware.
                  *
-                 * @param MiddlewareInterface $middleware
+                 * @param AbstractMiddleware $middleware
                  * @param DataResolverInterface $next
                  */
-                public function __construct(MiddlewareInterface $middleware, DataResolverInterface $next) {
+                public function __construct(AbstractMiddleware $middleware, DataResolverInterface $next) {
                     $this->middleware = $middleware;
                     $this->next = $next;
                 }
