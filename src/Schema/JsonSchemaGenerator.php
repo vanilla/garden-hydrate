@@ -117,6 +117,17 @@ class JsonSchemaGenerator {
      */
     private function createCombinedDefsArray(): array {
         $defs = [];
+
+        $middlewareSchema = new Schema([
+            'description' => 'Apply middlewares over the node',
+            'type' => 'object',
+            'properties' => []
+        ]);
+
+        foreach ($this->dataHydrator->getMiddlewares() as $middleware) {
+            $middlewareSchema->setField('properties.' . $middleware->getType(), $middleware->getSchema());
+        }
+
         // Make sure we have defs for groups of things (included the root group that contains everything).
         foreach ($this->typesByGroup as $group => $types) {
             $defs[$group] = [
@@ -125,7 +136,8 @@ class JsonSchemaGenerator {
                     DataHydrator::KEY_HYDRATE => [
                         'type' => 'string',
                         'enum' => $types,
-                    ]
+                    ],
+                    DataHydrator::KEY_MIDDLEWARE => $middlewareSchema,
                 ],
                 'required' => [DataHydrator::KEY_HYDRATE]
             ];
@@ -161,22 +173,7 @@ class JsonSchemaGenerator {
     private function applyResolverAsReference(AbstractDataResolver $resolver) {
         $type = $resolver->getType();
         $schema = $resolver->getSchema();
-        $middlewares = $this->dataHydrator->getMiddlewares();
-        $middlewareSchemas = [];
         $schemaArray = $schema ? $schema->getSchemaArray() : HydrateableSchema::ANY_OBJECT_SCHEMA_ARRAY;
-        #if (!empty($middlewares) && $middlewares !== null) {
-        #    $middlewareSchemas['$middleware']['type'] = 'array';
-        #    $middlewareSchemas['$middleware']['description'] = 'Middleware';
-        #}
-        foreach ($middlewares as $middleware) {
-            if (method_exists($middleware, 'getMiddlewareSchema')) {
-                $middlewareSchemas['$middleware'][] = ($middleware->getMiddlewareSchema())->getSchemaArray();
-            }
-        }
-        if (!empty($schemaArray['properties'])) {
-            $schemaArray['properties'] = array_merge($schemaArray['properties'], $middlewareSchemas);
-        }
-        //var_dump(json_decode(json_encode($schemaArray)));exit;
         $hydrateableSchema = new HydrateableSchema($schemaArray, $type);
         $this->referencesByType[$type] = $hydrateableSchema->getSchemaArray();
     }

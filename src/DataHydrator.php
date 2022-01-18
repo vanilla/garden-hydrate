@@ -74,7 +74,7 @@ class DataHydrator {
     }
 
     /**
-     * @return array
+     * @return AbstractMiddleware[]
      */
     public function getMiddlewares(): array {
         return $this->middlewares;
@@ -309,9 +309,6 @@ class DataHydrator {
                  * @return mixed
                  */
                 public function resolve(array $data, array $params = []) {
-                    if (!empty($data['$middleware']) && $data['$middleware'] !== null) {
-                        $data['$middleware'] = $this->middleware->validate($data['$middleware']);
-                    }
                     $r = $this->middleware->process($data, $params, $this->next);
                     return $r;
                 }

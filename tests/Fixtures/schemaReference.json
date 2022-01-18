@@ -34,6 +34,33 @@
                         "assertEquals",
                         "nestedObjSchema"
                     ]
+                },
+                "$middleware": {
+                    "description": "Apply middlewares over the node",
+                    "type": "object",
+                    "properties": {
+                        "transform": {
+                            "type": "object",
+                            "description": "Methods of transforming a resolved node. Applies the node is hydrated.",
+                            "properties": {
+                                "jsont": {
+                                    "type": [
+                                        "object",
+                                        "string"
+                                    ],
+                                    "additionalProperties": true,
+                                    "description": "A jsont specification for transforming the API response data. You may want to escape this with $hydrate: 'literal'.See https:\/\/github.com\/vanilla\/garden-jsont"
+                                }
+                            },
+                            "required": [
+                                "jsont"
+                            ]
+                        },
+                        "subcommunities": {
+                           "subcommunityIDs": [1, 6, 10],
+                            "urlCodes": ["en", "fr"]
+                        }
+                    }
                 }
             },
             "required": [
@@ -54,26 +81,6 @@
                         "number",
                         "boolean",
                         "null"
-                    ]
-                },
-                "$middleware": {
-                    "oneOf": [
-                        [
-                            {
-                                "x-no-hydrate": true,
-                                "description": "transform middleware",
-                                "type": "object",
-                                "properties": {
-                                    "key": {
-                                        "type": "string",
-                                        "description": "ref"
-                                    }
-                                }
-                            }
-                        ],
-                        {
-                            "$ref": "#\/$defs\/resolver"
-                        }
                     ]
                 },
                 "$hydrate": {
@@ -116,26 +123,6 @@
                     ],
                     "description": "A default value for the parameter value. Defaults to null."
                 },
-                "$middleware": {
-                    "oneOf": [
-                        [
-                            {
-                                "x-no-hydrate": true,
-                                "description": "transform middleware",
-                                "type": "object",
-                                "properties": {
-                                    "key": {
-                                        "type": "string",
-                                        "description": "ref"
-                                    }
-                                }
-                            }
-                        ],
-                        {
-                            "$ref": "#\/$defs\/resolver"
-                        }
-                    ]
-                },
                 "$hydrate": {
                     "type": "string",
                     "enum": [
@@ -176,26 +163,6 @@
                     ],
                     "description": "Default value if the ref could not be resolved. Defaults to null."
                 },
-                "$middleware": {
-                    "oneOf": [
-                        [
-                            {
-                                "x-no-hydrate": true,
-                                "description": "transform middleware",
-                                "type": "object",
-                                "properties": {
-                                    "key": {
-                                        "type": "string",
-                                        "description": "ref"
-                                    }
-                                }
-                            }
-                        ],
-                        {
-                            "$ref": "#\/$defs\/resolver"
-                        }
-                    ]
-                },
                 "$hydrate": {
                     "type": "string",
                     "enum": [
@@ -233,26 +200,6 @@
                         }
                     ],
                     "description": "Arguments to interpolate into the format string."
-                },
-                "$middleware": {
-                    "oneOf": [
-                        [
-                            {
-                                "x-no-hydrate": true,
-                                "description": "transform middleware",
-                                "type": "object",
-                                "properties": {
-                                    "key": {
-                                        "type": "string",
-                                        "description": "ref"
-                                    }
-                                }
-                            }
-                        ],
-                        {
-                            "$ref": "#\/$defs\/resolver"
-                        }
-                    ]
                 },
                 "$hydrate": {
                     "type": "string",
@@ -357,26 +304,6 @@
                         }
                     ]
                 },
-                "$middleware": {
-                    "oneOf": [
-                        [
-                            {
-                                "x-no-hydrate": true,
-                                "description": "transform middleware",
-                                "type": "object",
-                                "properties": {
-                                    "key": {
-                                        "type": "string",
-                                        "description": "ref"
-                                    }
-                                }
-                            }
-                        ],
-                        {
-                            "$ref": "#\/$defs\/resolver"
-                        }
-                    ]
-                },
                 "$hydrate": {
                     "type": "string",
                     "enum": [
@@ -425,26 +352,6 @@
                                 ]
                             }
                         },
-                        {
-                            "$ref": "#\/$defs\/resolver"
-                        }
-                    ]
-                },
-                "$middleware": {
-                    "oneOf": [
-                        [
-                            {
-                                "x-no-hydrate": true,
-                                "description": "transform middleware",
-                                "type": "object",
-                                "properties": {
-                                    "key": {
-                                        "type": "string",
-                                        "description": "ref"
-                                    }
-                                }
-                            }
-                        ],
                         {
                             "$ref": "#\/$defs\/resolver"
                         }

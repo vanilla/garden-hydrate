@@ -49,7 +49,9 @@ class MutationsTest extends TestCase {
             DataHydrator::KEY_HYDRATE => 'param',
             'ref' => 'foo',
             DataHydrator::KEY_MIDDLEWARE => [
-                'transform' => '/foo',
+                'transform' => [
+                    'jsont' => '/foo',
+                ]
             ],
         ];
         $actual = $this->hydrator->resolve($spec, ['foo' => ['foo' => 'bar']]);

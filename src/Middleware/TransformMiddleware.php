@@ -16,20 +16,16 @@ use Garden\Schema\Schema;
  * Middleware that transforms the data after it has been resolved.
  */
 class TransformMiddleware extends AbstractMiddleware {
+
     /**
-     * {@inheritDoc}
+     * @inheritdoc
      */
-    public function process(array $data, array $params, DataResolverInterface $next) {
-        $transform = $data[DataHydrator::KEY_MIDDLEWARE]['transform'] ?? null;
-        $data = $next->resolve($data, $params);
-
-        if ($transform !== null) {
-            $transformer = new Transformer($transform);
-
-            $result = $transformer->transform($data);
-            return $result;
-        }
-        return $data;
+    protected function processInternal(array $nodeData, array $middlewareParams, array $hydrateParams, DataResolverInterface $next) {
+        $resolvedData = $next->resolve($nodeData, $hydrateParams);
+        $jsontSpec = $middlewareParams['jsont'];
+        $transformer = new Transformer($jsontSpec);
+        $result = $transformer->transform($resolvedData);
+        return $result;
     }
 
     /**
@@ -37,18 +33,28 @@ class TransformMiddleware extends AbstractMiddleware {
      *
      * @return Schema
      */
-    public static function getMiddlewareSchema(): Schema {
+    public function getSchema(): Schema {
         $schema = new Schema([
-            "x-no-hydrate" => true,
-            "description" => "transform middleware",
-            "type" => "object",
-            "properties" => [
-                "key" => Schema::parse([
-                    "type" => "string",
-                    "description" => "ref"
-                ])
-            ]
+            'type' => 'object',
+            'description' => 'Methods of transforming a resolved node. Applies the node is hydrated.',
+            'properties' => [
+                'jsont' => [
+                    'type' => ['object', 'string'],
+                    'additionalProperties' => true,
+                    'description' =>
+                        'A jsont specification for transforming the API response data. You may want to escape this with $hydrate: \'literal\'.'
+                        . 'See https://github.com/vanilla/garden-jsont',
+                ],
+            ],
+            'required' => ['jsont'],
         ]);
         return $schema;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getType(): string {
+        return "transform";
     }
 }
