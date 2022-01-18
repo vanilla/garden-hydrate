@@ -21,6 +21,9 @@ use Garden\Schema\Schema;
 class MiddlewareCollection extends AbstractMiddleware {
     use MiddlewareCollectionTrait;
 
+    /**
+     * @return Schema
+     */
     public static function getMiddlewareSchema(): Schema {
         return new Schema([]);
     }

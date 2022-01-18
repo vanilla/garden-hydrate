@@ -37,7 +37,7 @@ class DataHydrator {
     private $resolvers = [];
 
     /**
-     * @var MiddlewareInterface[]
+     * @var AbstractMiddleware[]
      */
     private $middlewares = [];
 
