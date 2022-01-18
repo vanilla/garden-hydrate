@@ -56,6 +56,26 @@
                         "null"
                     ]
                 },
+                "$middleware": {
+                    "oneOf": [
+                        [
+                            {
+                                "x-no-hydrate": true,
+                                "description": "transform middleware",
+                                "type": "object",
+                                "properties": {
+                                    "key": {
+                                        "type": "string",
+                                        "description": "ref"
+                                    }
+                                }
+                            }
+                        ],
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ]
+                },
                 "$hydrate": {
                     "type": "string",
                     "enum": [
@@ -95,6 +115,26 @@
                         }
                     ],
                     "description": "A default value for the parameter value. Defaults to null."
+                },
+                "$middleware": {
+                    "oneOf": [
+                        [
+                            {
+                                "x-no-hydrate": true,
+                                "description": "transform middleware",
+                                "type": "object",
+                                "properties": {
+                                    "key": {
+                                        "type": "string",
+                                        "description": "ref"
+                                    }
+                                }
+                            }
+                        ],
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ]
                 },
                 "$hydrate": {
                     "type": "string",
@@ -136,6 +176,26 @@
                     ],
                     "description": "Default value if the ref could not be resolved. Defaults to null."
                 },
+                "$middleware": {
+                    "oneOf": [
+                        [
+                            {
+                                "x-no-hydrate": true,
+                                "description": "transform middleware",
+                                "type": "object",
+                                "properties": {
+                                    "key": {
+                                        "type": "string",
+                                        "description": "ref"
+                                    }
+                                }
+                            }
+                        ],
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ]
+                },
                 "$hydrate": {
                     "type": "string",
                     "enum": [
@@ -173,6 +233,26 @@
                         }
                     ],
                     "description": "Arguments to interpolate into the format string."
+                },
+                "$middleware": {
+                    "oneOf": [
+                        [
+                            {
+                                "x-no-hydrate": true,
+                                "description": "transform middleware",
+                                "type": "object",
+                                "properties": {
+                                    "key": {
+                                        "type": "string",
+                                        "description": "ref"
+                                    }
+                                }
+                            }
+                        ],
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ]
                 },
                 "$hydrate": {
                     "type": "string",
@@ -277,6 +357,26 @@
                         }
                     ]
                 },
+                "$middleware": {
+                    "oneOf": [
+                        [
+                            {
+                                "x-no-hydrate": true,
+                                "description": "transform middleware",
+                                "type": "object",
+                                "properties": {
+                                    "key": {
+                                        "type": "string",
+                                        "description": "ref"
+                                    }
+                                }
+                            }
+                        ],
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ]
+                },
                 "$hydrate": {
                     "type": "string",
                     "enum": [
@@ -325,6 +425,26 @@
                                 ]
                             }
                         },
+                        {
+                            "$ref": "#\/$defs\/resolver"
+                        }
+                    ]
+                },
+                "$middleware": {
+                    "oneOf": [
+                        [
+                            {
+                                "x-no-hydrate": true,
+                                "description": "transform middleware",
+                                "type": "object",
+                                "properties": {
+                                    "key": {
+                                        "type": "string",
+                                        "description": "ref"
+                                    }
+                                }
+                            }
+                        ],
                         {
                             "$ref": "#\/$defs\/resolver"
                         }

@@ -115,8 +115,9 @@ class HydrateableSchema extends Schema {
         if (isset($schemaArray['oneOf'])) {
             // Push into the existing items.
             $schemaArray['oneOf'][] = JsonSchemaGenerator::getDefReference(JsonSchemaGenerator::ROOT_HYDRATE_GROUP);
-        } elseif (isset($schemaArray['anyOf']) || isset($schemaArray['properties']['$middleware'])) {
+        } elseif (isset($schemaArray['anyOf'])) {
             // Modify the existing items
+            var_dump($schemaArray);exit;
             $items = array_map([$this, 'oneOfWithHydrate'], $schemaArray['anyOf']);
 
             // Wrap ourselves so we are { oneOf: [ {anyOf: }, REF_RESOLVER ] }
