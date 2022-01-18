@@ -8,6 +8,7 @@
 namespace Garden\Hydrate;
 
 use Garden\Hydrate\Middleware\AbstractMiddleware;
+
 /**
  * Apply this to a class to add support for collecting middleware.
  */

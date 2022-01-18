@@ -9,6 +9,7 @@ namespace Garden\Hydrate\Middleware;
 
 use Garden\Hydrate\MiddlewareCollectionTrait;
 use Garden\Hydrate\Middleware\AbstractMiddleware;
+use Garden\Schema\Schema;
 
 /**
  * A collection of middleware that can be processed as a single middleware.
@@ -19,4 +20,8 @@ use Garden\Hydrate\Middleware\AbstractMiddleware;
  */
 class MiddlewareCollection extends AbstractMiddleware {
     use MiddlewareCollectionTrait;
+
+    public static function getMiddlewareSchema(): Schema {
+        return new Schema([]);
+    }
 }

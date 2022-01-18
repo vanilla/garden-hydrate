@@ -272,7 +272,7 @@ class DataHydrator {
     /**
      * Make a data resolver out of a collection of middleware and an inner resolver.
      *
-     * @param MiddlewareInterface[] $middlewares
+     * @param AbstractMiddleware[] $middlewares
      * @param DataResolverInterface $inner
      * @return DataResolverInterface
      */
