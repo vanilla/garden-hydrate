@@ -7,7 +7,6 @@
 
 namespace Garden\Hydrate;
 
-
 /**
  * An interface for data resolvers.
  *

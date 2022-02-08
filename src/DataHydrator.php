@@ -57,7 +57,7 @@ class DataHydrator {
     /** @var LiteralResolver */
     private $literalResolver;
 
-    /** @var array */
+    /** @var array|null */
     private $jsonLdHeaders;
 
     /**

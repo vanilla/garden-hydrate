@@ -42,6 +42,7 @@ class LiteralResolver extends AbstractDataResolver {
      *
      * @param array $data
      * @param array $params
+     * @param array|null $jsonLdHeaders Array of JSON-LD meta tags.
      * @return mixed
      */
     public function resolveInternal(array $data, array $params, ?array &$jsonLdHeaders = null) {
