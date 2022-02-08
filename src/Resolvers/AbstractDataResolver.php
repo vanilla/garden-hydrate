@@ -34,9 +34,9 @@ abstract class AbstractDataResolver implements ValidatableResolverInterface {
     /**
      * {@inheritDoc}
      */
-    final public function resolve(array $data, array $params = []) {
+    final public function resolve(array $data, array $params = [], ?array &$jsonLdHeaders = null) {
         $result = $this->validate($data);
-        $result = $this->resolveInternal($result, $params);
+        $result = $this->resolveInternal($result, $params, $jsonLdHeaders);
         return $result;
     }
 
@@ -46,9 +46,10 @@ abstract class AbstractDataResolver implements ValidatableResolverInterface {
      *
      * @param array $data The input data spec.
      * @param array $params Additional parameters passed to the resolution
+     * @param array|null $jsonLdHeaders Array of JSON-LD meta tags.
      * @return mixed
      */
-    abstract protected function resolveInternal(array $data, array $params);
+    abstract protected function resolveInternal(array $data, array $params, ?array &$jsonLdHeaders = null);
 
     /**
      * @return Schema|null

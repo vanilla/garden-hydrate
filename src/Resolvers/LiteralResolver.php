@@ -44,7 +44,7 @@ class LiteralResolver extends AbstractDataResolver {
      * @param array $params
      * @return mixed
      */
-    public function resolveInternal(array $data, array $params) {
+    public function resolveInternal(array $data, array $params, ?array &$jsonLdHeaders = null) {
         return $data['data'];
     }
 

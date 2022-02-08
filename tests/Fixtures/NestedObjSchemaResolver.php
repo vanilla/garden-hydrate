@@ -18,7 +18,7 @@ class NestedObjSchemaResolver extends AbstractDataResolver {
     /**
      * {@inheritDoc}
      */
-    protected function resolveInternal(array $data, array $params = []) {
+    protected function resolveInternal(array $data, array $params = [], ?array &$jsonLdHeaders = null) {
         return $data;
     }
 

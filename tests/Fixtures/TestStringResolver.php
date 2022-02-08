@@ -31,7 +31,7 @@ class TestStringResolver extends AbstractDataResolver {
     /**
      * {@inheritDoc}
      */
-    protected function resolveInternal(array $data, array $params = []) {
+    protected function resolveInternal(array $data, array $params = [], ?array &$jsonLdHeaders = null) {
         unset($data[DataHydrator::KEY_HYDRATE]);
         $data['str'] = ($data['str'] ?? '').$this->str;
 
