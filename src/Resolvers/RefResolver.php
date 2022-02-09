@@ -47,7 +47,7 @@ final class RefResolver extends AbstractDataResolver {
     /**
      * {@inheritDoc}
      */
-    public function resolveInternal(array $data, array $params, ?array &$jsonLdHeaders = null) {
+    public function resolveInternal(array $data, array $params) {
         $ref = $data['ref'];
         $default = $data['default'] ?? null;
 

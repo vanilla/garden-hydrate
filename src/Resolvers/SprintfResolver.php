@@ -40,7 +40,7 @@ class SprintfResolver extends AbstractDataResolver {
     /**
      * {@inheritDoc}
      */
-    protected function resolveInternal(array $data, array $params, ?array &$jsonLdHeaders = null) {
+    protected function resolveInternal(array $data, array $params) {
         $args = $data['args'] ?? [];
         $result = sprintf($data['format'], ...$args);
         return $result;

@@ -46,10 +46,9 @@ class MiddlewareWrapper implements DataResolverInterface {
      *
      * @param array $data
      * @param array $params
-     * @param array|null $jsonLdHeaders Array of JSON-LD meta tags.
      * @return mixed
      */
-    public function resolve(array $data, array $params = [], ?array &$jsonLdHeaders = null) {
+    public function resolve(array $data, array $params = []) {
         $allParams = array_replace($params, [DataHydrator::KEY_MIDDLEWARE => $this->params]);
 
         $r = $this->middleware->process($data, $allParams, $this->resolver);

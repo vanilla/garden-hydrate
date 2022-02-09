@@ -17,7 +17,7 @@ class ExceptionThrowerResolver extends AbstractDataResolver {
     /**
      * @inheritDoc
      */
-    public function resolveInternal(array $data, array $params = [], ?array &$jsonLdHeaders = null) {
+    public function resolveInternal(array $data, array $params = []) {
         throw new \Exception($data['message'], $data['code'] ?? 500);
     }
 

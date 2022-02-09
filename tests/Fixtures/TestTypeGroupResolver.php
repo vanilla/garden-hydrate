@@ -35,7 +35,7 @@ class TestTypeGroupResolver extends AbstractDataResolver {
     /**
      * {@inheritDoc}
      */
-    protected function resolveInternal(array $data, array $params = [], ?array &$jsonLdHeaders = null) {
+    protected function resolveInternal(array $data, array $params = []) {
         return 'testTypeGroup';
     }
 

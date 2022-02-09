@@ -18,10 +18,9 @@ interface DataResolverInterface {
      *
      * @param array $data The data to resolve.
      * @param array $params Any additional global parameters passed to the hyrdrator.
-     * @param array|null $jsonLdHeaders Array of JSON-LD meta tags.
      * @return mixed The resolver can return whatever it wants.
      */
-    public function resolve(array $data, array $params = [], ?array &$jsonLdHeaders = null);
+    public function resolve(array $data, array $params = []);
 
     /**
      * Get the type of the resolver.

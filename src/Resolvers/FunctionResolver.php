@@ -149,7 +149,7 @@ class FunctionResolver extends AbstractDataResolver {
     /**
      * {@inheritDoc}
      */
-    protected function resolveInternal(array $data, array $params, ?array &$jsonLdHeaders = null) {
+    protected function resolveInternal(array $data, array $params) {
         $args = [];
         foreach ($this->paramNames as $paramName) {
             if (array_key_exists($paramName, $data)) {

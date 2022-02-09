@@ -57,15 +57,11 @@ class DataHydrator {
     /** @var LiteralResolver */
     private $literalResolver;
 
-    /** @var array|null */
-    private $jsonLdHeaders;
-
     /**
      * DataHydrator constructor.
      */
     public function __construct() {
         $this->setExceptionHandler(new NullExceptionHandler());
-        $this->jsonLdHeaders = [];
         $this->literalResolver = new LiteralResolver();
         $this->addResolver($this->literalResolver);
         $this->paramResolver = new ParamResolver();
@@ -138,10 +134,9 @@ class DataHydrator {
      *
      * @param array $data The specification that defines the data.
      * @param array $params Additional contextual data.
-     * @param array|null $jsonLdHeaders JsonLd metadata.
      * @return mixed Returns the hydrated data.
      */
-    public function resolve(array $data, array $params = [], ?array &$jsonLdHeaders = null) {
+    public function resolve(array $data, array $params = []) {
         $params[self::KEY_ROOT] = $data;
 
         $this->resolver = self::makeMiddlewareResolver(
@@ -151,7 +146,6 @@ class DataHydrator {
             })
         );
         $result = $this->resolveInternal($data, $params);
-        $jsonLdHeaders = $this->jsonLdHeaders;
         return $result;
     }
 
@@ -166,7 +160,7 @@ class DataHydrator {
         $result = [];
         try {
             $result = $this->resolveChildren($data, $params);
-            $result = $this->resolver->resolve($result, $params, $this->jsonLdHeaders);
+            $result = $this->resolver->resolve($result, $params);
         } catch (Exception $ex) {
             $result = $this->exceptionHandler->handleException($ex, $result, $params);
         }
@@ -193,7 +187,7 @@ class DataHydrator {
             }
             $resolver = $this->getResolver($type);
 
-            $data = $resolver->resolve($data, $params, $this->jsonLdHeaders);
+            $data = $resolver->resolve($data, $params);
         }
         if (is_array($data)) {
             unset($data[self::KEY_MIDDLEWARE]);
@@ -237,6 +231,15 @@ class DataHydrator {
     }
 
     /**
+     * Get a resolvers.
+     *
+     * @return array
+     */
+    public function getResolvers(): array {
+        return $this->resolvers;
+    }
+
+    /**
      * Resolve the child nodes of the current node.
      *
      * @param array $data
@@ -258,7 +261,7 @@ class DataHydrator {
             }
             // Handle the special case for a literal value.
             if (isset($data[self::KEY_HYDRATE]) && $data[self::KEY_HYDRATE] === LiteralResolver::TYPE) {
-                $result['data'] = $this->literalResolver->resolve($data, $this->jsonLdHeaders);
+                $result['data'] = $this->literalResolver->resolve($data);
                 $result['data'] = $data['data'];
                 unset($recurse['data']);
             }
@@ -310,10 +313,9 @@ class DataHydrator {
                  *
                  * @param array $data
                  * @param array $params
-                 * @param array|null $jsonLdHeaders Array of JSON-LD meta tags.
                  * @return mixed
                  */
-                public function resolve(array $data, array $params = [], ?array &$jsonLdHeaders = null) {
+                public function resolve(array $data, array $params = []) {
                     $r = $this->middleware->process($data, $params, $this->next);
                     return $r;
                 }
@@ -354,7 +356,7 @@ class DataHydrator {
             /**
              * {@inheritDoc}
              */
-            public function resolve(array $data, array $params = [], ?array &$jsonLdHeaders = null) {
+            public function resolve(array $data, array $params = []) {
                 $r = ($this->resolver)($data, $params);
                 return $r;
             }
