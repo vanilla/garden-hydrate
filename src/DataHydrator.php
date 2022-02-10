@@ -62,7 +62,6 @@ class DataHydrator {
      */
     public function __construct() {
         $this->setExceptionHandler(new NullExceptionHandler());
-
         $this->literalResolver = new LiteralResolver();
         $this->addResolver($this->literalResolver);
         $this->paramResolver = new ParamResolver();
@@ -147,7 +146,6 @@ class DataHydrator {
             })
         );
         $result = $this->resolveInternal($data, $params);
-
         return $result;
     }
 
@@ -230,6 +228,15 @@ class DataHydrator {
         }
         $resolver = $this->resolvers[$type];
         return $resolver;
+    }
+
+    /**
+     * Get a resolvers.
+     *
+     * @return array
+     */
+    public function getResolvers(): array {
+        return $this->resolvers;
     }
 
     /**
