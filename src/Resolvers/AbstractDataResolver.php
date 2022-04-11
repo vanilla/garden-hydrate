@@ -19,6 +19,9 @@ abstract class AbstractDataResolver implements ValidatableResolverInterface {
      */
     protected $schema;
 
+    /** @var array */
+    protected $layoutCacheNode;
+
     /**
      * {@inheritDoc}
      */
@@ -35,9 +38,32 @@ abstract class AbstractDataResolver implements ValidatableResolverInterface {
      * {@inheritDoc}
      */
     final public function resolve(array $data, array $params = []) {
-        $result = $this->validate($data);
-        $result = $this->resolveInternal($result, $params);
+        global $layoutCacheNode;
+        if (!empty($data['$hydrate'])) {
+            $layoutCacheNodeKey = md5(json_encode($data));
+            if (!empty($this->layoutCacheNode[$layoutCacheNodeKey])) {
+                //return result from node cache over entire request
+                $result = $this->layoutCacheNode[$layoutCacheNodeKey];
+            } else {
+                $result = $this->validate($data);
+                $result = $this->resolveInternal($result, $params);
+                //cache unique node result for entire request
+                $this->layoutCacheNode[$layoutCacheNodeKey] = $result;
+                $layoutCacheNode[$layoutCacheNodeKey] = $this->layoutCacheNode[$layoutCacheNodeKey];
+            }
+        } else {
+            $result = $this->validate($data);
+            $result = $this->resolveInternal($result, $params);
+        }
         return $result;
+    }
+
+    /**
+     * Empty the cache of hydrated nodes (may be needed for tests)
+     */
+    final public function clearCache() {
+        global $layoutCacheNode;
+        $layoutCacheNode = $this->layoutCacheNode = [];
     }
 
 
