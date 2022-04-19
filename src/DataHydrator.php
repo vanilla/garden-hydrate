@@ -57,6 +57,9 @@ class DataHydrator {
     /** @var LiteralResolver */
     private $literalResolver;
 
+    /** @var array */
+    private $layoutCacheNode;
+
     /** @var integer */
     private $resolveCount = 0;
 
