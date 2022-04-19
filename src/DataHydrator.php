@@ -57,6 +57,9 @@ class DataHydrator {
     /** @var LiteralResolver */
     private $literalResolver;
 
+    /** @var integer */
+    private $resolveCount = 0;
+
     /**
      * DataHydrator constructor.
      */
@@ -178,6 +181,7 @@ class DataHydrator {
      * @throws InvalidHydrateSpecException Throws if the hydrate key field is invalid.
      */
     private function resolveNode(array $data, array $params) {
+        global $layoutCacheNode;
         if (isset($data[self::KEY_HYDRATE])) {
             $type = $data[self::KEY_HYDRATE];
             if (!is_string($type)) {
@@ -187,12 +191,41 @@ class DataHydrator {
             }
             $resolver = $this->getResolver($type);
 
-            $data = $resolver->resolve($data, $params);
+            $layoutCacheNodeKey = md5(json_encode($data));
+            if (!empty($this->layoutCacheNode[$layoutCacheNodeKey])) {
+                $data = $this->layoutCacheNode[$layoutCacheNodeKey];
+            } else {
+                $data = $resolver->resolve($data, $params);
+                $this->layoutCacheNode[$layoutCacheNodeKey] = $data;
+                $layoutCacheNode[$layoutCacheNodeKey] = $this->layoutCacheNode[$layoutCacheNodeKey];
+                $this->resolveCount++;
+            }
         }
         if (is_array($data)) {
             unset($data[self::KEY_MIDDLEWARE]);
         }
         return $data;
+    }
+
+    /**
+     * Get the current resolve run (nodes hydrated not cached) count
+     * Used to determine whether hydrate data found in cache in tests
+     *
+     * @return int
+     */
+    public function getResolveCount(): int {
+        return $this->resolveCount;
+    }
+
+    /**
+     * Empty the cache of hydrated nodes and nodes hydrated count (for tests)
+     *
+     * @return void
+     */
+    public function clearResolverCache(): void {
+        global $layoutCacheNode;
+        $layoutCacheNode = [];
+        $this->resolveCount = 0;
     }
 
     /**
