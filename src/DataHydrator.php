@@ -19,6 +19,7 @@ use Garden\Hydrate\Resolvers\RefResolver;
 use Garden\Hydrate\Resolvers\SprintfResolver;
 use Garden\Hydrate\Schema\JsonSchemaGenerator;
 use Garden\Schema\Schema;
+use Vanilla\Cache\ValidatingCacheCacheAdapter;
 
 /**
  * Allows data to by hydrated based on a spec that can include data resolvers or literal data.
@@ -63,10 +64,14 @@ class DataHydrator {
     /** @var integer */
     private $resolveCount = 0;
 
+    /** @var CacheInterface */
+    private $cache;
+
     /**
      * DataHydrator constructor.
      */
     public function __construct() {
+        $this->cache = $this->createSimpleCache();
         $this->setExceptionHandler(new NullExceptionHandler());
         $this->literalResolver = new LiteralResolver();
         $this->addResolver($this->literalResolver);
@@ -184,7 +189,6 @@ class DataHydrator {
      * @throws InvalidHydrateSpecException Throws if the hydrate key field is invalid.
      */
     private function resolveNode(array $data, array $params) {
-        global $layoutCacheNode;
         if (isset($data[self::KEY_HYDRATE])) {
             $type = $data[self::KEY_HYDRATE];
             if (!is_string($type)) {
@@ -193,21 +197,41 @@ class DataHydrator {
                 throw new InvalidHydrateSpecException("The ${hydrateKey} must be a string. Instead got: $json");
             }
             $resolver = $this->getResolver($type);
-
             $layoutCacheNodeKey = md5(json_encode($data));
-            if (!empty($this->layoutCacheNode[$layoutCacheNodeKey])) {
-                $data = $this->layoutCacheNode[$layoutCacheNodeKey];
-            } else {
+            $cacheData = $this->cache->get($layoutCacheNodeKey);
+            if (empty($cacheData)) {
                 $data = $resolver->resolve($data, $params);
-                $this->layoutCacheNode[$layoutCacheNodeKey] = $data;
-                $layoutCacheNode[$layoutCacheNodeKey] = $this->layoutCacheNode[$layoutCacheNodeKey];
-                $this->resolveCount++;
+                $this->cache->set($layoutCacheNodeKey, $data);
+            } else {
+                $data = $cacheData;
             }
         }
         if (is_array($data)) {
             unset($data[self::KEY_MIDDLEWARE]);
         }
         return $data;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSimpleCache() {
+        return $this->cache;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createSimpleCache() {
+        $cache = new ValidatingCacheCacheAdapter($this->createLegacyCache());
+        return $cache;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function createLegacyCache(): \Gdn_Cache {
+        return new \Gdn_Dirtycache();
     }
 
     /**
@@ -226,9 +250,7 @@ class DataHydrator {
      * @return void
      */
     public function clearResolverCache(): void {
-        global $layoutCacheNode;
-        $layoutCacheNode = [];
-        $this->resolveCount = 0;
+        $this->cache->clear();
     }
 
     /**

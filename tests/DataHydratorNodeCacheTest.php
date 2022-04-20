@@ -1,7 +1,7 @@
 <?php
 /**
- * @author Gary Pomerant <gpomerant@higherlogic.com>
- * @copyright 2009-2022 Vanilla Forums Inc.
+ * @author Todd Burry <todd@vanillaforums.com>
+ * @copyright 2009-2020 Vanilla Forums Inc.
  * @license MIT
  */
 
@@ -14,6 +14,8 @@ use PHPUnit\Framework\TestCase;
  * Tests for the `DataHydrator` class.
  */
 class DataHydratorNodeCacheTest extends TestCase {
+
+    /** @var DataHydrator  */
     private $hydrator;
 
     /**
@@ -21,58 +23,34 @@ class DataHydratorNodeCacheTest extends TestCase {
      */
     public function setUp(): void {
         parent::setUp();
-
         $this->hydrator = new DataHydrator();
-
     }
 
     /**
-     * Test that node cache is working and counter is valid.
+     * Test that node cache contains results after resolved
      */
     public function testRootParam(): void {
-        $spec = ['$hydrate' => 'param', 'ref' => 'foo'];
+        $spec = ['$hydrate' => 'param', 'ref' => 'foo']; //first req
+        $layoutCacheNodeKey = md5(json_encode($spec));
+        $this->hydrator->resolve($spec, ['foo' => 'bar']);
+        $cache = $this->hydrator->getSimpleCache();
+        $cacheData = $cache->get($layoutCacheNodeKey);
+        $this->assertSame($cacheData, 'bar');
+        $this->assertTrue($cache->has($layoutCacheNodeKey));
 
-        $this->hydrator->resolve($spec, ['foo' => 'bar']); //resolved once on a single request
-        $midCount = $this->hydrator->getResolveCount();
-        $this->assertSame(1, $midCount, 'missed count first');
+        $spec = ['$hydrate' => 'param', 'ref' => 'bar']; //second req
+        $layoutCacheNodeKey2 = md5(json_encode($spec));
+        $this->hydrator->resolve($spec, ['bar' => 'baz']);
+        $cache = $this->hydrator->getSimpleCache();
+        $cacheData = $cache->get($layoutCacheNodeKey2);
+        $this->assertSame($cacheData, 'baz');
+        $this->assertTrue($cache->has($layoutCacheNodeKey2));
 
-        $this->hydrator->resolve($spec, ['foo' => 'bar']); //resolving same again now found in cache
-        $dupCount = $this->hydrator->getResolveCount();
-        $this->assertSame(1, $dupCount, 'duplicate processed; not pulled from cache');
 
-        $spec = ['$hydrate' => 'param', 'ref' => 'baz'];
-        $this->hydrator->resolve($spec, ['baz' => 'bar']); //resolved new on a separate request not in cache
-        $nondupCount = $this->hydrator->getResolveCount();
-        $this->assertSame(2, $nondupCount, 'not fresh resolve');
-
-        $this->hydrator->clearResolverCache(); // clear resolver cache and count
-        $finalCount = $this->hydrator->getResolveCount();
-        $this->assertSame(0, $finalCount, 'cache not cleared');
-    }
-
-    /**
-     * Test that node cache is working and counter is valid on nested elements.
-     */
-    public function testNestedResolvers(): void {
-        $spec = ['$hydrate' => 'param', 'ref' => ['$hydrate' => 'param', 'ref' => 'foo']];
-        $this->hydrator->resolve($spec, ['foo' => 'bar', 'bar' => 'baz']);
-        $nestedCount = $this->hydrator->getResolveCount();
-        $this->assertSame(2, $nestedCount, 'nested not counted'); // count resolve nested
-        $this->hydrator->clearResolverCache(); // clear resolver count
-        $finalCount = $this->hydrator->getResolveCount();
-        $this->assertSame(0, $finalCount, 'cache not cleared'); // count cache cleared
-    }
-
-    /**
-     * Test that node cache is working and valid on nested elements.
-     */
-    public function testNestedResolversDuplicates(): void {
-        $spec = ['$hydrate' => 'param', 'ref' => ['$hydrate' => 'param', 'ref' => 'foo']];
-        $this->hydrator->resolve($spec, ['foo' => 'bar', 'bar' => 'baz', 'baz' => 'bip']);
-        $nestedCount = $this->hydrator->getResolveCount();
-        $this->assertSame(2, $nestedCount, 'nested not counted'); // count resolve nested
-        $this->hydrator->clearResolverCache(); // clear resolver count
-        $finalCount = $this->hydrator->getResolveCount();
-        $this->assertSame(0, $finalCount, 'cache not cleared'); // count cache cleared
+        $spec = ['$hydrate' => 'param', 'ref' => 'foo']; //same as first now from cache
+        $layoutCacheNodeKey = md5(json_encode($spec));
+        $this->hydrator->resolve($spec, ['foo' => 'bar']);
+        $cacheData = $cache->get($layoutCacheNodeKey);
+        $this->assertSame($cacheData, 'bar');
     }
 }
