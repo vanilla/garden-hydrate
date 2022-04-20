@@ -218,14 +218,19 @@ class DataHydrator {
     }
 
     /**
-     * @inheritDoc
+     * Return the current cache item
+     *
+     * @param string key
+     * @return CacheItem
      */
     public function getCache($key = null) {
         return $this->cache->getItem($key);
     }
 
     /**
-     * @inheritDoc
+     * Create cache instance
+     *
+     * @return ArrayAdapter
      */
     private function createCache() {
         return new ArrayAdapter();
