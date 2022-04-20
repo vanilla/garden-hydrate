@@ -20,6 +20,8 @@ use Garden\Hydrate\Resolvers\SprintfResolver;
 use Garden\Hydrate\Schema\JsonSchemaGenerator;
 use Garden\Schema\Schema;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\CacheItem;
+use Symfony\Contracts\Cache\CacheInterface;
 
 /**
  * Allows data to by hydrated based on a spec that can include data resolvers or literal data.
@@ -65,7 +67,7 @@ class DataHydrator {
     private $cache;
 
     /** @var int When running tests track resolved vs found in cache */
-    public $nodeResolved;
+    public $resolveCount;
 
     /**
      * DataHydrator constructor.
@@ -205,7 +207,7 @@ class DataHydrator {
                 $cacheData->set($data);
                 $this->cache->save($cacheData);
                 if (defined('TESTMODE_ENABLED')) {
-                    $this->nodeResolved++;
+                    $this->resolveCount++;
                 }
             } else {
                 $data = $cacheHit;
@@ -234,16 +236,6 @@ class DataHydrator {
      */
     private function createCache() {
         return new ArrayAdapter();
-    }
-
-    /**
-     * Get the current resolve run (nodes hydrated not cached) count
-     * Used to determine whether hydrate data found in cache in tests
-     *
-     * @return int
-     */
-    public function getResolveCount(): int {
-        return $this->resolveCount;
     }
 
     /**
