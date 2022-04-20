@@ -220,7 +220,7 @@ class DataHydrator {
     /**
      * Return the current cache item
      *
-     * @param string key
+     * @param string $key The cache key for the node
      * @return CacheItem
      */
     public function getCache($key = null) {
@@ -248,10 +248,8 @@ class DataHydrator {
 
     /**
      * Empty the cache of hydrated nodes and nodes hydrated count (for tests)
-     *
-     * @return void
      */
-    public function clearResolverCache(): void {
+    public function clearResolverCache() {
         $this->cache->clear();
     }
 
