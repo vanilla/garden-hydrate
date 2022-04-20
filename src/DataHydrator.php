@@ -21,7 +21,6 @@ use Garden\Hydrate\Schema\JsonSchemaGenerator;
 use Garden\Schema\Schema;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\CacheItem;
-use Symfony\Contracts\Cache\CacheInterface;
 
 /**
  * Allows data to by hydrated based on a spec that can include data resolvers or literal data.
@@ -63,7 +62,7 @@ class DataHydrator {
     /** @var array */
     private $layoutCacheNode;
 
-    /** @var CacheInterface */
+    /** @var CacheItem */
     private $cache;
 
     /** @var int When running tests track resolved vs found in cache */
