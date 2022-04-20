@@ -19,7 +19,7 @@ use Garden\Hydrate\Resolvers\RefResolver;
 use Garden\Hydrate\Resolvers\SprintfResolver;
 use Garden\Hydrate\Schema\JsonSchemaGenerator;
 use Garden\Schema\Schema;
-use Vanilla\Cache\ValidatingCacheCacheAdapter;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 /**
  * Allows data to by hydrated based on a spec that can include data resolvers or literal data.
@@ -61,17 +61,17 @@ class DataHydrator {
     /** @var array */
     private $layoutCacheNode;
 
-    /** @var integer */
-    private $resolveCount = 0;
-
     /** @var CacheInterface */
     private $cache;
+
+    /** @var int When running tests track resolved vs found in cache */
+    public $nodeResolved;
 
     /**
      * DataHydrator constructor.
      */
     public function __construct() {
-        $this->cache = $this->createSimpleCache();
+        $this->cache = $this->createCache();
         $this->setExceptionHandler(new NullExceptionHandler());
         $this->literalResolver = new LiteralResolver();
         $this->addResolver($this->literalResolver);
@@ -198,12 +198,17 @@ class DataHydrator {
             }
             $resolver = $this->getResolver($type);
             $layoutCacheNodeKey = md5(json_encode($data));
-            $cacheData = $this->cache->get($layoutCacheNodeKey);
-            if (empty($cacheData)) {
+            $cacheData = $this->cache->getItem($layoutCacheNodeKey);
+            $cacheHit = $cacheData->get();
+            if (is_null($cacheHit)) {
                 $data = $resolver->resolve($data, $params);
-                $this->cache->set($layoutCacheNodeKey, $data);
+                $cacheData->set($data);
+                $this->cache->save($cacheData);
+                if (defined('TESTMODE_ENABLED')) {
+                    $this->nodeResolved++;
+                }
             } else {
-                $data = $cacheData;
+                $data = $cacheHit;
             }
         }
         if (is_array($data)) {
@@ -215,23 +220,15 @@ class DataHydrator {
     /**
      * @inheritDoc
      */
-    public function getSimpleCache() {
-        return $this->cache;
+    public function getCache($key = null) {
+        return $this->cache->getItem($key);
     }
 
     /**
      * @inheritDoc
      */
-    public function createSimpleCache() {
-        $cache = new ValidatingCacheCacheAdapter($this->createLegacyCache());
-        return $cache;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function createLegacyCache(): \Gdn_Cache {
-        return new \Gdn_Dirtycache();
+    private function createCache() {
+        return new ArrayAdapter();
     }
 
     /**

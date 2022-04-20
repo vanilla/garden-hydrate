@@ -33,24 +33,25 @@ class DataHydratorNodeCacheTest extends TestCase {
         $spec = ['$hydrate' => 'param', 'ref' => 'foo']; //first req
         $layoutCacheNodeKey = md5(json_encode($spec));
         $this->hydrator->resolve($spec, ['foo' => 'bar']);
-        $cache = $this->hydrator->getSimpleCache();
-        $cacheData = $cache->get($layoutCacheNodeKey);
-        $this->assertSame($cacheData, 'bar');
-        $this->assertTrue($cache->has($layoutCacheNodeKey));
+        $cache = $this->hydrator->getCache($layoutCacheNodeKey);
+        $cacheHit = $cache->get();
+        $this->assertSame('bar', $cacheHit);
 
-        $spec = ['$hydrate' => 'param', 'ref' => 'bar']; //second req
+        $spec = ['$hydrate' => 'param', 'ref' => 'bar']; //second req diff from first
         $layoutCacheNodeKey2 = md5(json_encode($spec));
         $this->hydrator->resolve($spec, ['bar' => 'baz']);
-        $cache = $this->hydrator->getSimpleCache();
-        $cacheData = $cache->get($layoutCacheNodeKey2);
-        $this->assertSame($cacheData, 'baz');
-        $this->assertTrue($cache->has($layoutCacheNodeKey2));
+        $cache2 = $this->hydrator->getCache($layoutCacheNodeKey2);
+        $cacheHit = $cache2->get();
+        $this->assertSame('baz', $cacheHit);
+        $this->assertSame(2, $this->hydrator->nodeResolved); // node was processed - incrementing counter
 
-
-        $spec = ['$hydrate' => 'param', 'ref' => 'foo']; //same as first now from cache
-        $layoutCacheNodeKey = md5(json_encode($spec));
+        $spec = ['$hydrate' => 'param', 'ref' => 'foo']; //third req same as first
         $this->hydrator->resolve($spec, ['foo' => 'bar']);
-        $cacheData = $cache->get($layoutCacheNodeKey);
-        $this->assertSame($cacheData, 'bar');
+        $this->assertSame(2, $this->hydrator->nodeResolved); // node returned from cache - not incremented
+
+        $spec = ['$hydrate' => 'param', 'ref' => 'bif']; //fourth req new diff
+        $this->hydrator->resolve($spec, ['bif' => 'bun']);
+        $this->assertSame(3, $this->hydrator->nodeResolved); // node was processed - incrementing counter
+
     }
 }
