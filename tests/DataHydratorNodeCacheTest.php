@@ -43,15 +43,12 @@ class DataHydratorNodeCacheTest extends TestCase {
         $cache2 = $this->hydrator->getCache($layoutCacheNodeKey2);
         $cacheHit = $cache2->get();
         $this->assertSame('baz', $cacheHit);
-        $this->assertSame(2, $this->hydrator->resolveCount); // node was processed - incrementing counter
 
         $spec = ['$hydrate' => 'param', 'ref' => 'foo']; //third req same as first
         $this->hydrator->resolve($spec, ['foo' => 'bar']);
-        $this->assertSame(2, $this->hydrator->resolveCount); // node returned from cache - not incremented
 
         $spec = ['$hydrate' => 'param', 'ref' => 'bif']; //fourth req new diff
         $this->hydrator->resolve($spec, ['bif' => 'bun']);
-        $this->assertSame(3, $this->hydrator->resolveCount); // node was processed - incrementing counter
 
     }
 }

@@ -65,8 +65,6 @@ class DataHydrator {
     /** @var ArrayAdapter */
     private $cache;
 
-    /** @var int When running tests track resolved vs found in cache */
-    public $resolveCount = 0;
 
     /**
      * DataHydrator constructor.
@@ -205,9 +203,6 @@ class DataHydrator {
                 $data = $resolver->resolve($data, $params);
                 $cacheData->set($data);
                 $this->cache->save($cacheData);
-                if (defined('TESTMODE_ENABLED')) {
-                    $this->resolveCount++;
-                }
             } else {
                 $data = $cacheHit;
             }
