@@ -66,7 +66,7 @@ class DataHydrator {
     private $cache;
 
     /** @var int When running tests track resolved vs found in cache */
-    public $resolveCount;
+    public $resolveCount = 0;
 
     /**
      * DataHydrator constructor.
