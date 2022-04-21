@@ -62,7 +62,7 @@ class DataHydrator {
     /** @var array */
     private $layoutCacheNode;
 
-    /** @var CacheItem */
+    /** @var ArrayAdapter */
     private $cache;
 
     /** @var int When running tests track resolved vs found in cache */
