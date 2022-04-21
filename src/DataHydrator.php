@@ -224,7 +224,7 @@ class DataHydrator {
      * @param string $key The cache key for the node
      * @return CacheItem
      */
-    public function getCache($key = null) {
+    public function getCache($key) {
         return $this->cache->getItem($key);
     }
 
