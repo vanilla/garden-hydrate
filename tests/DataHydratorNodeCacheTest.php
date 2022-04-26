@@ -32,14 +32,14 @@ class DataHydratorNodeCacheTest extends TestCase {
     public function testRootParam(): void {
         $spec = ['$hydrate' => 'param', 'ref' => 'foo']; //first req
         $layoutCacheNodeKey = md5(json_encode($spec));
-        $this->hydrator->resolve($spec, ['foo' => 'bar']);
+        $this->hydrator->resolve($spec, ['foo' => 'bar'], false);
         $cache = $this->hydrator->getCache($layoutCacheNodeKey);
         $cacheHit = $cache->get();
         $this->assertSame('bar', $cacheHit);
 
         $spec = ['$hydrate' => 'param', 'ref' => 'bar']; //second req diff from first
         $layoutCacheNodeKey2 = md5(json_encode($spec));
-        $this->hydrator->resolve($spec, ['bar' => 'baz']);
+        $this->hydrator->resolve($spec, ['bar' => 'baz'], false);
         $cache2 = $this->hydrator->getCache($layoutCacheNodeKey2);
         $cacheHit = $cache2->get();
         $this->assertSame('baz', $cacheHit);

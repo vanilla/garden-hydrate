@@ -144,9 +144,10 @@ class DataHydrator {
      *
      * @param array $data The specification that defines the data.
      * @param array $params Additional contextual data.
+     * @param boolean $clearCache Don't clear resolved node cache at end of Request (for PHPUnit Tests cache checks)
      * @return mixed Returns the hydrated data.
      */
-    public function resolve(array $data, array $params = []) {
+    public function resolve(array $data, array $params = [], $clearCache = true) {
         $params[self::KEY_ROOT] = $data;
 
         $this->resolver = self::makeMiddlewareResolver(
@@ -156,6 +157,9 @@ class DataHydrator {
             })
         );
         $result = $this->resolveInternal($data, $params);
+        if ($clearCache) {
+            $this->clearResolverCache();
+        }
         return $result;
     }
 
@@ -199,7 +203,7 @@ class DataHydrator {
             $layoutCacheNodeKey = md5(json_encode($data));
             $cacheData = $this->cache->getItem($layoutCacheNodeKey);
             $cacheHit = $cacheData->get();
-            if (is_null($cacheHit)) {
+            if (is_null($cacheHit) && !$this->cache->hasItem($layoutCacheNodeKey)) {
                 $data = $resolver->resolve($data, $params);
                 $cacheData->set($data);
                 $this->cache->save($cacheData);
