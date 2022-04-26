@@ -19,6 +19,8 @@ use Garden\Hydrate\Resolvers\RefResolver;
 use Garden\Hydrate\Resolvers\SprintfResolver;
 use Garden\Hydrate\Schema\JsonSchemaGenerator;
 use Garden\Schema\Schema;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\CacheItem;
 
 /**
  * Allows data to by hydrated based on a spec that can include data resolvers or literal data.
@@ -57,10 +59,18 @@ class DataHydrator {
     /** @var LiteralResolver */
     private $literalResolver;
 
+    /** @var array */
+    private $layoutCacheNode;
+
+    /** @var ArrayAdapter */
+    private $cache;
+
+
     /**
      * DataHydrator constructor.
      */
     public function __construct() {
+        $this->cache = $this->createCache();
         $this->setExceptionHandler(new NullExceptionHandler());
         $this->literalResolver = new LiteralResolver();
         $this->addResolver($this->literalResolver);
@@ -134,9 +144,10 @@ class DataHydrator {
      *
      * @param array $data The specification that defines the data.
      * @param array $params Additional contextual data.
+     * @param boolean $clearCache Don't clear resolved node cache at end of Request (for PHPUnit Tests cache checks)
      * @return mixed Returns the hydrated data.
      */
-    public function resolve(array $data, array $params = []) {
+    public function resolve(array $data, array $params = [], $clearCache = true) {
         $params[self::KEY_ROOT] = $data;
 
         $this->resolver = self::makeMiddlewareResolver(
@@ -146,6 +157,9 @@ class DataHydrator {
             })
         );
         $result = $this->resolveInternal($data, $params);
+        if ($clearCache) {
+            $this->clearResolverCache();
+        }
         return $result;
     }
 
@@ -186,13 +200,47 @@ class DataHydrator {
                 throw new InvalidHydrateSpecException("The ${hydrateKey} must be a string. Instead got: $json");
             }
             $resolver = $this->getResolver($type);
-
-            $data = $resolver->resolve($data, $params);
+            $layoutCacheNodeKey = md5(json_encode($data));
+            $cacheData = $this->cache->getItem($layoutCacheNodeKey);
+            $cacheHit = $cacheData->get();
+            if (is_null($cacheHit) && !$this->cache->hasItem($layoutCacheNodeKey)) {
+                $data = $resolver->resolve($data, $params);
+                $cacheData->set($data);
+                $this->cache->save($cacheData);
+            } else {
+                $data = $cacheHit;
+            }
         }
         if (is_array($data)) {
             unset($data[self::KEY_MIDDLEWARE]);
         }
         return $data;
+    }
+
+    /**
+     * Return the current cache item
+     *
+     * @param string $key The cache key for the node
+     * @return CacheItem
+     */
+    public function getCache($key) {
+        return $this->cache->getItem($key);
+    }
+
+    /**
+     * Create cache instance
+     *
+     * @return ArrayAdapter
+     */
+    private function createCache() {
+        return new ArrayAdapter();
+    }
+
+    /**
+     * Empty the cache of hydrated nodes and nodes hydrated count (for tests)
+     */
+    public function clearResolverCache() {
+        $this->cache->clear();
     }
 
     /**

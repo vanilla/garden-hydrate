@@ -40,7 +40,6 @@ abstract class AbstractDataResolver implements ValidatableResolverInterface {
         return $result;
     }
 
-
     /**
      * Override this method to do the actual resolution.
      *
