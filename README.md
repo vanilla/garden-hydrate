@@ -300,3 +300,4 @@ Let's see how this might look in practice:
 If you consider using this implementation with some of the other case studies above you can really see the power and flexibility you can achieve with different combinations and nestings of hydrate specs. Wiring up your existing RESTful API is going to offer you 
 
 *Note: We recommend supporting just `GET` requests on the endpoint to start.*
+test
