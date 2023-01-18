@@ -80,7 +80,7 @@ class FunctionResolver extends AbstractDataResolver {
             $schema = [];
             if ($param->isVariadic()) {
                 $schema = ['type' => 'array', 'items' => []];
-            } elseif (null !== $param->getType() && $param->getType()->isBuiltin()) {
+            } elseif ($param->getType() instanceof \ReflectionNamedType && $param->getType()->isBuiltin()) {
                 $typeName = $param->getType()->getName();
                 switch ($typeName) {
                     case 'bool':
