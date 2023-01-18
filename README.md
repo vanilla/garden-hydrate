@@ -2,7 +2,7 @@
 
 *A JSON based templating language for data.*
 
-[![CircleCI](https://circleci.com/gh/vanilla/garden-hydrate.svg?style=svg&circle-token=88ea96d98486f5168decf0f7fb19ff547a37962d)](https://app.circleci.com/pipelines/github/vanilla/garden-hydrate)
+[![CI](https://github.com/vanilla/garden-hydrate/actions/workflows/ci.yml/badge.svg)](https://github.com/vanilla/garden-hydrate/actions/workflows/ci.yml)
 [![Packagist Version](https://img.shields.io/packagist/v/vanilla/garden-hydrate.svg?style=flat)](https://packagist.org/packages/vanilla/garden-hydrate)
 ![MIT License](https://img.shields.io/packagist/l/vanilla/garden-hydrate.svg?style=flat)
 [![CLA](https://cla-assistant.io/readme/badge/vanilla/garden-hydrate)](https://cla-assistant.io/vanilla/garden-hydrate)
