@@ -28,7 +28,7 @@ trait MiddlewareCollectionTrait {
     /**
      * Whether or not a middleware exists in the collection.
      *
-     * @param string|AbstractMiddleware $middleware The class name of a middleware or a specific instance to look up.
+     * @param class-string|AbstractMiddleware $middleware The class name of a middleware or a specific instance to look up.
      * @return bool
      */
     public function hasMiddleware($middleware): bool {
