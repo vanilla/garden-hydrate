@@ -211,7 +211,7 @@
         },
         "assertEquals": {
             "type": "object",
-            "description": "Call the function `PHPUnit\\Framework\\Assert::assertEquals(expected, actual, message, delta, maxDepth, canonicalize, ignoreCase)`",
+            "description": "Call the function `PHPUnit\\Framework\\Assert::assertEquals(expected, actual, message)`",
             "properties": {
                 "expected": {
                     "oneOf": [
@@ -250,50 +250,6 @@
                         {
                             "type": "string",
                             "default": ""
-                        },
-                        {
-                            "$ref": "#\/$defs\/resolver"
-                        }
-                    ]
-                },
-                "delta": {
-                    "oneOf": [
-                        {
-                            "type": "number",
-                            "default": 0
-                        },
-                        {
-                            "$ref": "#\/$defs\/resolver"
-                        }
-                    ]
-                },
-                "maxDepth": {
-                    "oneOf": [
-                        {
-                            "type": "integer",
-                            "default": 10
-                        },
-                        {
-                            "$ref": "#\/$defs\/resolver"
-                        }
-                    ]
-                },
-                "canonicalize": {
-                    "oneOf": [
-                        {
-                            "type": "boolean",
-                            "default": false
-                        },
-                        {
-                            "$ref": "#\/$defs\/resolver"
-                        }
-                    ]
-                },
-                "ignoreCase": {
-                    "oneOf": [
-                        {
-                            "type": "boolean",
-                            "default": false
                         },
                         {
                             "$ref": "#\/$defs\/resolver"
