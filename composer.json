@@ -13,7 +13,7 @@
         "php": ">=7.4",
         "ext-json": "*",
         "vanilla/garden-jsont": "^1.2",
-        "vanilla/garden-schema": "^1.10.2",
+        "vanilla/garden-schema": "^3.0",
         "symfony/cache": "^4.4"
     },
     "autoload": {

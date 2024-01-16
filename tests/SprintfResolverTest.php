@@ -33,7 +33,7 @@ class SprintfResolverTest extends TestCase {
         $resolver = new SprintfResolver();
 
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage('format is not');
+        $this->expectExceptionMessage('format: The value is not a valid string.');
         $actual = $resolver->resolve(['format' => []], []);
     }
 
