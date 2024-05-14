@@ -197,7 +197,7 @@ class DataHydrator {
             if (!is_string($type)) {
                 $json = json_encode($type, JSON_PRETTY_PRINT);
                 $hydrateKey = self::KEY_HYDRATE;
-                throw new InvalidHydrateSpecException("The ${hydrateKey} must be a string. Instead got: $json");
+                throw new InvalidHydrateSpecException("The {$hydrateKey} must be a string. Instead got: $json");
             }
             $resolver = $this->getResolver($type);
             $layoutCacheNodeKey = md5(json_encode($data));
