@@ -94,12 +94,11 @@ class HydrateableSchema extends Schema {
     /**
      * Allow hydrate in a schema.
      *
-     * @param array $schemaArray
+     * @param $schemaArray
      * @param bool $isTopLevel Set to true to indicate that we are the top level definition of the schema and not a property.
      *
-     * @return array
      */
-    private function allowHydrateInSchema(array $schemaArray, bool $isTopLevel = false): array {
+    private function allowHydrateInSchema($schemaArray, bool $isTopLevel = false) {
         $notHydrateable = $isTopLevel || ($schemaArray[self::X_NO_HYDRATE] ?? false);
 
         // Do items first.
@@ -180,10 +179,10 @@ class HydrateableSchema extends Schema {
     /**
      * Take a schema array and union it with the the root hydrator.
      *
-     * @param array $schemaArray
+     * @param $schemaArray
      * @return array[]
      */
-    private function oneOfWithHydrate(array $schemaArray): array {
+    private function oneOfWithHydrate($schemaArray): array {
         // Clear the description, we're hoisting it.
         $hydrateGroup = $schemaArray[self::X_HYDRATE_GROUP] ?? JsonSchemaGenerator::ROOT_HYDRATE_GROUP;
         $description = $schemaArray['description'] ?? null;
