@@ -168,9 +168,9 @@ class HydrateableSchema extends Schema {
     /**
      * Add a not of hydrate key.
      *
-     * @param array $schemaArray
+     * @param $schemaArray
      */
-    private function markNotHydrate(array &$schemaArray) {
+    private function markNotHydrate(&$schemaArray) {
         $schemaArray['not'] = [
             "required" => [DataHydrator::KEY_HYDRATE],
         ];
