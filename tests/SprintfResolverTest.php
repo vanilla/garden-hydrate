@@ -44,7 +44,7 @@ class SprintfResolverTest extends TestCase {
         $resolver = new SprintfResolver();
 
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage('args');
+        $this->expectExceptionMessage('args: "foo" is not a valid array.');
         $actual = $resolver->resolve(['format' => 'foo', 'args' => 'foo'], []);
     }
 }
